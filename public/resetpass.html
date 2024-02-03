@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10" />
+    <link rel="stylesheet" href="/public/assets/styles/changepass.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <title>Reset Password</title>
+  </head>
+  <body>
+    <div class="nav">
+      <input type="checkbox" id="nav-check" />
+      <div class="nav-header">
+        <div class="nav-title">
+          <a href="/">
+            <img class="logo" src="/public/assets/img/logo.png" alt="logo" />
+          </a>
+        </div>
+      </div>
+      <div class="nav-btn">
+        <label for="nav-check">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
+      </div>
+
+      <div class="nav-links">
+        <a href="/">sender</a>
+        <a href="/resell">resell</a>
+        <a href="/campaigns">campaigns</a>
+        <a href="/config">config</a>
+        <div class="dropdown">
+          <button><i class="fa-solid fa-user"></i>PROFILE</button>
+          <div class="dropdown-options">
+            <a href="/change-password">CHANGE PASSWORD</a>
+            <a href="/logout">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mainDiv">
+      <div class="cardStyle">
+        <form id="signupForm" onsubmit="validateSignupForm(event)">
+          <img src="" id="signupLogo" />
+
+          <h2 class="formTitle">Reset Password</h2>
+
+          <div class="inputDiv">
+            <label class="inputLabel" for="password">New Password</label>
+            <input
+              type="password"
+              id="newPassword"
+              name="newPassword"
+              required
+            />
+          </div>
+
+          <div class="inputDiv">
+            <label class="inputLabel" for="confirmPassword"
+              >Confirm Password</label
+            >
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+            />
+          </div>
+
+          <div class="buttonWrapper">
+            <button
+              type="submit"
+              id="submitButton"
+              class="submitButton pure-button pure-button-primary"
+            >
+              <span>Continue</span>
+              <span id="loader"></span>
+            </button>
+          </div>
+          <br />
+          <div style="text-align: center; margin: 20px">
+            <a href="/logout" class="home-page">Home Page</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.4/sweetalert2.all.min.js"
+      integrity="sha512-lTaUIREPGkPIN75aQtSK7bEt6w/YhlsMjWhhJ0X2LNTXySpI10ZPsz+lmcuz2BP7/WGBjAwbnavUhK4Yb3X13Q=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <script>
+      var password = document.getElementById("newPassword");
+      var confirm_password = document.getElementById("confirmPassword");
+
+      enableSubmitButton();
+
+      function validatePassword() {
+        if (password.value != confirm_password.value) {
+          confirm_password.setCustomValidity("Passwords Don't Match");
+          return false;
+        } else {
+          confirm_password.setCustomValidity("");
+          return true;
+        }
+      }
+
+      password.onchange = validatePassword;
+      confirm_password.onkeyup = validatePassword;
+
+      function enableSubmitButton() {
+        document.getElementById("submitButton").disabled = false;
+        document.getElementById("loader").style.display = "none";
+      }
+
+      function disableSubmitButton() {
+        document.getElementById("submitButton").disabled = true;
+        document.getElementById("loader").style.display = "unset";
+      }
+
+      function validateSignupForm(event) {
+        event.preventDefault();
+        var form = document.forms[0];
+
+        for (var i = 0; i < form.elements.length; i++) {
+          if (
+            form.elements[i].value === "" &&
+            form.elements[i].hasAttribute("required")
+          ) {
+            console.log("There are some required fields!");
+            return false;
+          }
+        }
+
+        if (!validatePassword()) {
+          return false;
+        }
+
+        if (document.querySelector("#newPassword").value.length < 8) {
+          Swal.fire({
+            icon: "error",
+            title: "Error!",
+            text: "Password must be at least 8 characters.",
+          });
+          return;
+        }
+
+        onSignup(event);
+      }
+
+      function onSignup(event) {
+        event.preventDefault();
+        Swal.showLoading();
+        let newPassword = document.querySelector("#newPassword").value;
+
+        let token = window.location.href.split("/").reverse()[0];
+
+        fetch(`/api/reset-password/${token}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            newPassword,
+          }),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw response;
+            }
+            return response.json();
+          })
+          .then((json) => {
+            Swal.hideLoading();
+            handleResponse(json);
+          })
+          .catch((error) => {
+            if (error instanceof Response) {
+              console.log(error.json().then((err) => showErrorMessage(err)));
+            }
+          });
+      }
+
+      window.onload = function () {
+        document.querySelector("#signupLogo").src =
+          "/public/assets/img/logo.png";
+      };
+    </script>
+
+    <script>
+      function showSuccessMessage(json) {
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: json["message"],
+        });
+
+        setTimeout(() => {
+          window.location.href = "/logout";
+        }, 3000);
+      }
+
+      function showErrorMessage(err) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: err.error,
+        });
+      }
+
+      function handleResponse(response) {
+        showSuccessMessage(response); // Adjust based on your API response structure
+      }
+
+      function handleError(error) {
+        showErrorMessage(error);
+      }
+    </script>
+  </body>
+</html>

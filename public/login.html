@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Login and Registration Form in HTML</title>
+    <link rel="stylesheet" href="/public/assets/styles/login.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 " />
+  </head>
+  <body>
+    <div class="wrapper">
+      <div>
+        <img src="/public/assets/img/logo.png" alt="logo" class="logo" />
+      </div>
+      <div class="title-text">
+        <div class="title login">Login Form</div>
+        <div class="title signup">Signup Form</div>
+      </div>
+      <div class="form-container">
+        <div class="slide-controls">
+          <input type="radio" name="slide" id="login" checked />
+          <input type="radio" name="slide" id="signup" />
+          <label for="login" class="slide login">Login</label>
+          <label for="signup" class="slide signup">Signup</label>
+          <div class="slider-tab"></div>
+        </div>
+        <div class="form-inner">
+          <form
+            method="POST"
+            onsubmit="login(event)"
+            id="loginForm"
+            class="login"
+          >
+            <div class="field">
+              <input
+                type="text"
+                placeholder="Email Address"
+                name="email"
+                id="email"
+                required
+              />
+            </div>
+            <div class="field">
+              <input
+                type="password"
+                placeholder="Password"
+                name="password"
+                id="pass"
+                required
+                autocomplete="new-password"
+              />
+            </div>
+            <div class="pass-link">
+              <a href="/forget-password">Forgot password?</a>
+            </div>
+            <div class="field btn">
+              <div class="btn-layer"></div>
+              <button type="submit">Login</button>
+            </div>
+            <div class="signup-link">
+              Not a member? <a href="#">Signup now</a>
+            </div>
+          </form>
+          <form
+            method="POST"
+            id="registerForm"
+            class="signup"
+            onsubmit="register(event)"
+          >
+            <div class="field">
+              <input
+                type="email"
+                name="email"
+                id="semail"
+                placeholder="Email Address"
+                required
+              />
+            </div>
+            <div class="field">
+              <input
+                type="password"
+                name="password"
+                id="spass"
+                placeholder="Password"
+                required
+              />
+              <div id="strength-indicator"></div>
+            </div>
+            <div class="field btn">
+              <div class="btn-layer"></div>
+              <button type="submit">Signup</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.4/sweetalert2.all.min.js"
+      integrity="sha512-lTaUIREPGkPIN75aQtSK7bEt6w/YhlsMjWhhJ0X2LNTXySpI10ZPsz+lmcuz2BP7/WGBjAwbnavUhK4Yb3X13Q=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <script>
+      const loginText = document.querySelector(".title-text .login");
+      const loginForm = document.querySelector("#loginForm");
+      const loginBtn = document.querySelector("label.login");
+      const signupBtn = document.querySelector("label.signup");
+      const signupLink = document.querySelector("form .signup-link a");
+
+      signupBtn.onclick = () => {
+        loginForm.style.marginLeft = "-50%";
+        loginText.style.marginLeft = "-50%";
+      };
+
+      loginBtn.onclick = () => {
+        loginForm.style.marginLeft = "0%";
+        loginText.style.marginLeft = "0%";
+      };
+
+      signupLink.onclick = () => {
+        signupBtn.click();
+        return false;
+      };
+      function showSuccessMessage(json) {
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: json["message"],
+        });
+      }
+
+      function showErrorMessage(err) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: err.error,
+        });
+      }
+
+      function handleResponse(response) {
+        showSuccessMessage(response); // Adjust based on your API response structure
+      }
+
+      function handleError(error) {
+        showErrorMessage(error);
+      }
+
+      function register(event) {
+        let semail = document.querySelector("#semail").value;
+        let spass = document.querySelector("#spass").value;
+        event.preventDefault();
+        Swal.showLoading();
+        if (!semail || !spass) {
+          handleError({ error: "All fields are required" });
+          return;
+        } else if (spass.length < 8) {
+          handleError({
+            error: "Password length must be 8 characters or more.",
+          });
+        } else {
+          // Send a fetch request instead of form submission
+          fetch("/api/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: semail,
+              password: spass,
+            }),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw response;
+              }
+              return response.json();
+            })
+            .then((json) => {
+              handleResponse(json);
+            })
+            .catch((error) => {
+              if (error instanceof Response) {
+                error.json().then(handleError);
+              }
+            });
+        }
+      }
+
+      function login(event) {
+        event.preventDefault();
+        Swal.showLoading();
+        let lemail = document.querySelector("#email").value;
+        let lpass = document.querySelector("#pass").value;
+
+        if (!lemail || !lpass) {
+          showErrorMessage("All fields are required");
+          return;
+        } else {
+          // Send a fetch request instead of form submission
+          fetch("/api/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: lemail,
+              password: lpass,
+            }),
+          })
+            .then((response) => {
+              Swal.hideLoading();
+              if (!response.ok) {
+                throw response;
+              }
+              // Check if the response has JSON content type
+              const contentType = response.headers.get("content-type");
+              if (contentType && contentType.includes("application/json")) {
+                return response.json();
+              } else {
+                // If it's not JSON, handle it differently (maybe redirect or show an error)
+                Swal.hideLoading();
+                window.location.href = response.url;
+              }
+            })
+            .catch((error) => {
+              if (error instanceof Response) {
+                // If it's a Response object, handle the error response with JSON data
+                error.json().then(handleError);
+                Swal.hideLoading();
+              } else {
+                // Handle other types of errors
+
+                console.log(error.message);
+              }
+            });
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Composer</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      href="https://use.fontawesome.com/releases/v5.6.1/css/all.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10" />
+    <link rel="stylesheet" href="/public/assets/external/richtext.min.css" />
+    <link rel="stylesheet" href="/public/assets/styles/main.css" />
+  </head>
+  <body>
+    <div class="nav">
+      <input type="checkbox" id="nav-check" />
+      <div class="nav-header">
+        <div class="nav-title">
+          <a href="">
+            <img class="logo" src="/public/assets/img/logo.png" alt="logo" />
+          </a>
+        </div>
+      </div>
+      <div class="nav-btn">
+        <label for="nav-check">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
+      </div>
+
+      <div class="nav-links">
+        <a href="/">sender</a>
+        <a href="/resell">resell</a>
+        <a href="/campaigns">campaigns</a>
+        <a href="/config">config</a>
+        <div class="dropdown">
+          <button><i class="fa-solid fa-user"></i>PROFILE</button>
+          <div class="dropdown-options">
+            <a href="/change-password">CHANGE PASSWORD</a>
+            <a href="/logout">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="wrapper">
+      <div class="inner_wrapper">
+        <form onsubmit="sendEmail(event)" id="emailForm" class="form">
+          <label for="to">To:</label>
+          <div class="container">
+            <textarea
+              id="to"
+              readonly
+              name="to"
+              resize="false"
+              rows="6"
+              required
+              hidden
+            ></textarea>
+            <div class="table_container"></div>
+            <div class="container-inner">
+              <span id="count">0 emails</span>
+              <input type="file" id="fileInput" accept=".xlsx, .xls" />
+              <ul>
+                <li>
+                  <a
+                    download
+                    href="/public/assets/sample files/excel/sample.xlsx"
+                    title="download sample"
+                    >DOWNLOAD SAMPLE</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <label for="subject">Subject:</label>
+          <div class="relative">
+            <input
+              type="text"
+              id="subject"
+              name="subject"
+              placeholder="ex. up to 60% off @(name) - don't miss this deal"
+              required
+            />
+            <input
+              list="variableHelper"
+              onchange="addVariable(event)"
+              id="subjectVariable"
+              class="absolute"
+              placeholder="custom fields <>"
+              style="
+                border-width: 1px;
+                border-color: rgba(0, 0, 0, 0.3);
+                width: max-content;
+              "
+            />
+          </div>
+
+          <label for="message">Message:</label>
+
+          <div class="container">
+            <div class="relative">
+              <textarea
+                id="message"
+                name="message"
+                placeholder="ex. Hey @(name),
+we have got a deal for you.
+  
+use your existing phone number @(phone) to get discount up to 60%.
+make sure you only enter your address @(address) to claim this offer.
+or <h2 style='color:red;'>Thank you</h2>"
+                rows="10"
+                required
+                oninput="updateContent()"
+              ></textarea>
+              <input
+                list="variableHelper"
+                onchange="addVariable(event)"
+                id="messageVariable"
+                class="absolute"
+                placeholder="custom fields <>"
+                style="
+                  border-width: 1px;
+                  border-color: rgba(0, 0, 0, 0.3);
+                  width: max-content;
+                  position: absolute;
+                  z-index: 10;
+                "
+              />
+            </div>
+            <div class="container-inner column">
+              <label for="attachments">Attachment:</label>
+              <input type="file" id="attachments" name="attachments" />
+            </div>
+          </div>
+
+          <button type="submit" disabled>Send Email</button>
+        </form>
+      </div>
+    </div>
+
+    <datalist hidden class="variableHelper" id="variableHelper"> </datalist>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+      integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="/public/assets/external/jquery.richtext.min.js"></script>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+      integrity="sha512-r22gChDnGvBylk90+2e/ycr3RVrDi8DIOkIGNhJlKfuyQM4tIRAI062MaV8sfjQKYVGjOBaZBOA87z+IhZE9DA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.4/sweetalert2.all.min.js"
+      integrity="sha512-lTaUIREPGkPIN75aQtSK7bEt6w/YhlsMjWhhJ0X2LNTXySpI10ZPsz+lmcuz2BP7/WGBjAwbnavUhK4Yb3X13Q=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <script>
+      var attachments;
+      function showSuccessMessage(message) {
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: message,
+        });
+      }
+
+      function showErrorMessage(json) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: json["error"],
+        });
+      }
+
+      function handleResponse(response) {
+        showSuccessMessage(response.message); // Adjust based on your API response structure
+      }
+
+      async function sendEmail(event) {
+        event.preventDefault();
+        Swal.showLoading();
+        const to = document.getElementById("to").value;
+        const subject = document.getElementById("subject").value;
+        const message = document.getElementById("message").value;
+
+        if (!to || !subject || !message) {
+          alert("To, Subject, and Message are required fields.");
+          return;
+        }
+
+        // Create FormData object to handle file uploads
+
+        // Use the Fetch API to send the data to a server endpoint
+        fetch("/api/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to,
+            subject,
+            message: message,
+            attachments,
+          }),
+        })
+          .then((response) => {
+            Swal.hideLoading();
+            if (!response.ok) {
+              throw response;
+            }
+            return response.json();
+          })
+          .then(handleResponse)
+          .catch((error) => {
+            error.json().then(showErrorMessage);
+          });
+        // Handle other types of errors
+      }
+      // Display the resulting HTML table
+    </script>
+    <script>
+      function jsonToHtmlTable(jsonData) {
+        // Validate input
+        if (!jsonData || typeof jsonData !== "object") {
+          console.error("Invalid JSON data");
+          return "";
+        }
+
+        // Extract keys from the first object in the array (assuming it's an array of objects)
+        const keys = Object.keys(jsonData[0]);
+
+        // Generate the HTML table
+        let tableHtml = '<table border="1"><thead><tr>';
+
+        // Add table headers
+        keys.forEach((key) => {
+          tableHtml += `<th>${key}</th>`;
+        });
+
+        tableHtml += "</tr></thead><tbody>";
+
+        // Add table rows
+        jsonData.forEach((item) => {
+          tableHtml += "<tr>";
+          keys.forEach((key) => {
+            tableHtml += `<td>${item[key]}</td>`;
+          });
+          tableHtml += "</tr>";
+        });
+
+        tableHtml += "</tbody></table>";
+
+        return tableHtml;
+      }
+
+      // Assume you have an input file element with id="fileInput"
+      const fileInput = document.getElementById("fileInput");
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+
+        if (file) {
+          const reader = new FileReader();
+
+          reader.onload = async (event) => {
+            const data = event.target.result;
+            const workbook = XLSX.read(data, { type: "binary" });
+
+            // Access the data from the workbook
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const tableData = await XLSX.utils
+              .sheet_to_json(worksheet, {
+                headers: 1,
+              })
+              .filter((data) => {
+                let pattern = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+                return pattern.test(
+                  data?.email || data.Email || data[Object.keys(data)][0]
+                );
+              });
+
+            if (tableData.length > 0) {
+              document.querySelector("#count").textContent =
+                tableData.length + " emails";
+              const jsonData = await XLSX.utils
+                .sheet_to_json(worksheet)
+                .filter((data) => {
+                  let pattern = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+                  return pattern.test(
+                    data?.email || data.Email || data[Object.keys(data)][0]
+                  );
+                });
+
+              Object.keys(jsonData[0]).forEach(function (key) {
+                html = `<option value="@(${key})">${key}</option>`;
+                for (let i of document.querySelectorAll(".variableHelper")) {
+                  i.innerHTML += html;
+                }
+              });
+              document.querySelector("#to").value = await JSON.stringify(
+                jsonData
+              );
+              document
+                .querySelector("form > button[type=submit]")
+                .attributes.removeNamedItem("disabled");
+              document.querySelector(".table_container").innerHTML =
+                jsonToHtmlTable(tableData);
+            }
+          };
+
+          reader.readAsBinaryString(file);
+        }
+      });
+
+      const attachmentsInput = document.querySelector("#attachments");
+      attachmentsInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = async function (event) {
+            attachments = {
+              data: event.target.result,
+              filename: file.name, // Include the original file name
+            };
+          };
+          reader.onerror = (error) => console.error(error);
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Now you can use the 'attachments' array with each attachment having data and filename properties.
+    </script>
+
+    <script>
+      $("#message").richText({
+        // text formatting
+        bold: true,
+        italic: true,
+        underline: true,
+
+        // text alignment
+        leftAlign: true,
+        centerAlign: true,
+        rightAlign: true,
+        justify: true,
+
+        // lists
+        ol: true,
+        ul: true,
+
+        // title
+        heading: true,
+
+        // fonts
+        fonts: true,
+        fontList: [
+          "Arial",
+          "Arial Black",
+          "Comic Sans MS",
+          "Courier New",
+          "Geneva",
+          "Georgia",
+          "Helvetica",
+          "Impact",
+          "Lucida Console",
+          "Tahoma",
+          "Times New Roman",
+          "Verdana",
+        ],
+        fontColor: true,
+        backgroundColor: true,
+        fontSize: true,
+
+        // uploads
+        imageUpload: true,
+
+        // link
+        urls: true,
+
+        // tables
+        table: true,
+
+        // code
+        removeStyles: true,
+        code: true,
+
+        // colors
+        colors: [],
+
+        // dropdowns
+        fileHTML: "",
+        imageHTML: "",
+
+        // translations
+        translations: {
+          title: "Title",
+          white: "White",
+          black: "Black",
+          brown: "Brown",
+          beige: "Beige",
+          darkBlue: "Dark Blue",
+          blue: "Blue",
+          lightBlue: "Light Blue",
+          darkRed: "Dark Red",
+          red: "Red",
+          darkGreen: "Dark Green",
+          green: "Green",
+          purple: "Purple",
+          darkTurquois: "Dark Turquois",
+          turquois: "Turquois",
+          darkOrange: "Dark Orange",
+          orange: "Orange",
+          yellow: "Yellow",
+          imageURL: "Image URL",
+          fileURL: "File URL",
+          linkText: "Link text",
+          url: "URL",
+          size: "Size",
+          responsive:
+            '<a href="https://www.jqueryscript.net/tags.php?/Responsive/">Responsive</a>',
+          text: "Text",
+          openIn: "Open in",
+          sameTab: "Same tab",
+          newTab: "New tab",
+          align: "Align",
+          left: "Left",
+          justify: "Justify",
+          center: "Center",
+          right: "Right",
+          rows: "Rows",
+          columns: "Columns",
+          add: "Add",
+          pleaseEnterURL: "Please enter an URL",
+          videoURLnotSupported: "Video URL not supported",
+          pleaseSelectImage: "Please select an image",
+          pleaseSelectFile: "Please select a file",
+          bold: "Bold",
+          italic: "Italic",
+          underline: "Underline",
+          alignLeft: "Align left",
+          alignCenter: "Align centered",
+          alignRight: "Align right",
+          addOrderedList: "Ordered list",
+          addUnorderedList: "Unordered list",
+          addHeading: "Heading/title",
+          addFont: "Font",
+          addFontColor: "Font color",
+          addBackgroundColor: "Background color",
+          addFontSize: "Font size",
+          addImage: "Add image",
+          addVideo: "Add video",
+          addFile: "Add file",
+          addURL: "Add URL",
+          addTable: "Add table",
+          removeStyles: "Remove styles",
+          code: "Show HTML code",
+          undo: "Undo",
+          redo: "Redo",
+          save: "Save",
+          close: "Close",
+        },
+
+        // privacy
+        youtubeCookies: false,
+
+        // preview
+        preview: false,
+
+        // placeholder
+        placeholder: "",
+
+        // dev settings
+        useSingleQuotes: false,
+        height: 0,
+        heightPercentage: 0,
+        adaptiveHeight: false,
+        id: "",
+        class: "",
+        useParagraph: false,
+        maxlength: 0,
+        maxlengthIncludeHTML: false,
+        callback: undefined,
+        useTabForNext: false,
+        save: false,
+        saveCallback: undefined,
+        saveOnBlur: 0,
+        undoRedo: true,
+      });
+    </script>
+
+    <script>
+      function addVariable(event) {
+        if (event.target.id == "subjectVariable") {
+          document.querySelector("#subject").value += event.target.value;
+          event.target.value = "";
+        } else {
+          document.querySelector("#message").value += event.target.value;
+          event.target.value = "";
+        }
+      }
+    </script>
+  </body>
+</html>

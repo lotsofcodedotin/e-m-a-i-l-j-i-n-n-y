@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>forget password page</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"
+    />
+    <link
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      .home-page {
+        color: white;
+        width: 200px;
+        height: 50px;
+        background-color: rebeccapurple;
+        padding: 7px 14px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body style="height: 100vh">
+    <div class="form-gap"></div>
+    <div
+      style="height: 100%"
+      class="container d-flex justify-content-center align-items-center"
+    >
+      <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <div class="text-center">
+                <div class="text-center">
+                  <img
+                    src="/public/assets/img/logo.png"
+                    width="200px"
+                    alt="logo"
+                  />
+                </div>
+                <h3><i class="fa fa-lock fa-4x"></i></h3>
+                <h2 class="text-center">Forgot Password?</h2>
+                <p>You can reset your password here.</p>
+                <div class="panel-body">
+                  <form
+                    id="register-form"
+                    role="form"
+                    autocomplete="off"
+                    class="form"
+                    onsubmit="handleSubmit(event)"
+                  >
+                    <div class="form-group">
+                      <div class="input-group">
+                        <span class="input-group-addon"
+                          ><i
+                            class="glyphicon glyphicon-envelope color-blue"
+                          ></i
+                        ></span>
+                        <input
+                          id="email"
+                          name="email"
+                          placeholder="email address"
+                          class="form-control"
+                          type="email"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <input
+                        name="recover-submit"
+                        class="btn btn-lg btn-primary btn-block"
+                        value="Reset Password"
+                        type="submit"
+                      />
+                    </div>
+                    <a href="/logout" class="home-page">Visit Home Page</a>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.4/sweetalert2.all.min.js"
+      integrity="sha512-lTaUIREPGkPIN75aQtSK7bEt6w/YhlsMjWhhJ0X2LNTXySpI10ZPsz+lmcuz2BP7/WGBjAwbnavUhK4Yb3X13Q=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      function handleSubmit(event) {
+        event.preventDefault();
+        Swal.showLoading();
+
+        let email = document.querySelector("#email").value;
+
+        fetch("/api/forget-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+          }),
+        })
+          .then((response) => {
+            Swal.hideLoading();
+            if (!response.ok) {
+              throw response;
+            }
+            return response.json();
+          })
+          .then(handleResponse)
+          .catch((error) => {
+            if (error instanceof Response) {
+              console.log(error.json().then((err) => showErrorMessage(err)));
+            }
+          });
+      }
+    </script>
+
+    <script>
+      function showSuccessMessage(json) {
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: json["message"],
+        });
+
+        setTimeout(() => {
+          window.location.href = "/logout";
+        }, 3000);
+      }
+
+      function showErrorMessage(err) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: err.error,
+        });
+      }
+
+      function handleResponse(response) {
+        showSuccessMessage(response); // Adjust based on your API response structure
+      }
+
+      function handleError(error) {
+        showErrorMessage(error);
+      }
+    </script>
+  </body>
+</html>

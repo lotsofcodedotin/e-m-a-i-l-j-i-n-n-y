@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>campaigns</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap");
+      .campaign-container {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin: 10px;
+        padding: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #f9f9f9;
+        transition: box-shadow 0.3s ease;
+      }
+
+      .campaign-container:hover {
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .campaign-link {
+        color: #007bff;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .info-row {
+        margin-top: 10px;
+      }
+
+      .info-row strong {
+        margin-right: 5px;
+        color: #333;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #ffffff;
+      }
+
+      label {
+        display: block;
+        margin: 5px 0 10px 0;
+      }
+
+      button {
+        background-color: #48a30c;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: block;
+        margin: 20px 0;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      .form {
+        padding: 20px;
+        width: 600px;
+        background-color: #fff;
+        border-radius: 4px;
+        box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+
+      h2 {
+        padding: 5px 20px;
+      }
+
+      input[type="file"]::file-selector-button {
+        border-radius: 4px;
+        padding: 0 16px;
+        height: 40px;
+        cursor: pointer;
+        background-color: #48a30c;
+        border: 1px solid rgba(0, 0, 0, 0.16);
+        box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
+        margin-right: 16px;
+        transition: background-color 200ms;
+        color: white;
+      }
+
+      /* file upload button hover state */
+      input[type="file"]::file-selector-button:hover {
+        background-color: #45a049;
+      }
+
+      /* file upload button active state */
+      input[type="file"]::file-selector-button:active {
+        background-color: #45a049;
+      }
+
+      input:not(input[type="file"]),
+      textarea {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+        resize: none;
+        outline: none;
+        border: 1px solid #333;
+        border-radius: 4px;
+      }
+
+      a:link,
+      a:visited,
+      a:active {
+        color: rgb(154, 0, 0);
+        text-decoration: none;
+      }
+      ul li {
+        position: relative;
+        display: inline-block;
+        overflow: hidden;
+      }
+      ul li:hover,
+      ul li:focus {
+        outline: none;
+      }
+      ul li a {
+        position: relative;
+        display: inline-block;
+        color: #48a30c;
+        font-size: 1.5em;
+        text-decoration: none;
+        text-transform: uppercase;
+        font-weight: 700;
+        transition: transform 0.5s ease;
+        -webkit-transition: transform 0.5s ease;
+      }
+      ul li a:before {
+        position: absolute;
+        top: 100%;
+        content: attr(title); /* The selector for Wordpress */
+        color: #333;
+        -webkit-transform: translate3d(0, 0, 0);
+        -moz-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+      }
+      ul li:hover a,
+      ul li:focus a {
+        -webkit-transform: translateY(-100%);
+        -moz-transform: translateY(-100%);
+        transform: translateY(-100%);
+      }
+
+      #count {
+        font-weight: 300;
+        color: #777272;
+        font-size: 12px;
+      }
+
+      /*nav**/
+
+      .nav {
+        width: 100%;
+        background-color: white;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .nav::after {
+        content: "";
+        width: 100%;
+        height: 2px;
+        background-color: #4caf50;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+      }
+
+      .nav > .nav-header {
+        display: inline;
+      }
+
+      .nav > .nav-header > .nav-title {
+        display: inline-block;
+        font-size: 22px;
+        color: #000;
+        padding: 0 20px;
+      }
+
+      .nav > .nav-btn {
+        display: none;
+      }
+
+      .nav > .nav-links {
+        display: inline;
+        float: right;
+        font-size: 18px;
+        text-transform: uppercase;
+      }
+
+      .nav > .nav-links > a {
+        display: inline-block;
+        padding: 13px 10px 13px 10px;
+        text-decoration: none;
+        color: #000;
+        transition: background-color 200ms;
+      }
+
+      .nav > .nav-links > a:hover {
+        background-color: #48a30c;
+        color: white;
+      }
+
+      .nav > #nav-check {
+        display: none;
+      }
+
+      .logo {
+        height: 50px;
+      }
+
+      .container,
+      .container-inner {
+        padding: 5px;
+        border: 1px solid #333;
+        display: flex;
+        gap: 5px;
+      }
+
+      .container textarea {
+        border: 1px solid #333;
+      }
+
+      .container-inner {
+        flex-direction: column-reverse;
+      }
+
+      .container,
+      .container-inner {
+        border-radius: 4px;
+      }
+
+      textarea {
+        overflow-y: auto;
+      }
+
+      .column {
+        flex-direction: column;
+      }
+
+      .wrapper {
+        width: 100%;
+        height: calc(100vh - 50px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      @media (max-width: 600px) {
+        .nav > .nav-btn {
+          display: inline-block;
+          position: absolute;
+          right: 0px;
+          top: 0px;
+        }
+        .nav > .nav-btn > label {
+          display: inline-block;
+          width: 50px;
+          height: 50px;
+          padding: 13px;
+          background-color: #000;
+        }
+        .nav > .nav-btn > label:hover,
+        .nav #nav-check:checked ~ .nav-btn > label {
+          background-color: rgb(0, 0, 0);
+        }
+        .nav > .nav-btn > label > span {
+          display: block;
+          width: 25px;
+          height: 10px;
+          border-top: 2px solid #eee;
+        }
+        .nav > .nav-links {
+          position: absolute;
+          display: block;
+          width: 100%;
+          background-color: #ccc;
+          height: 0px;
+          transition: all 0.3s ease-in;
+          overflow-y: hidden;
+          top: 50px;
+          left: 0px;
+          z-index: 10;
+        }
+        .nav > .nav-links > a {
+          display: block;
+          width: 100%;
+        }
+        .nav > #nav-check:not(:checked) ~ .nav-links {
+          height: 0px;
+        }
+        .nav > #nav-check:checked ~ .nav-links {
+          height: calc(100vh - 50px);
+          overflow-y: auto;
+        }
+
+        .container,
+        .container-inner {
+          display: block;
+        }
+        .wrapper {
+          padding: 10px;
+        }
+
+        .form {
+          width: calc(100vw - 20px);
+        }
+      }
+
+      .dropdown {
+        display: inline-block;
+        position: relative;
+      }
+
+      .dropdown button {
+        border: none;
+        border-radius: 5px;
+        padding: 15px 30px;
+        font-size: 18px;
+        cursor: pointer;
+      }
+
+      .dropdown button:hover {
+        background-color: #ddd;
+      }
+
+      .dropdown-options {
+        display: none;
+        position: absolute;
+        z-index: 100;
+        right: 0;
+        top: 50px;
+        overflow: auto;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0px 10px 10px 0px rgba(0, 0, 0, 0.4);
+      }
+
+      .dropdown:hover .dropdown-options {
+        display: block;
+      }
+
+      .dropdown-options a {
+        display: block;
+        color: #000000;
+        padding: 5px;
+        text-decoration: none;
+        padding: 20px 40px;
+      }
+
+      .dropdown-options a:hover {
+        color: #0a0a23;
+        background-color: #ddd;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav">
+      <input type="checkbox" id="nav-check" />
+      <div class="nav-header">
+        <div class="nav-title">
+          <a href="/">
+            <img class="logo" src="/public/assets/img/logo.png" alt="logo" />
+          </a>
+        </div>
+      </div>
+      <div class="nav-btn">
+        <label for="nav-check">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
+      </div>
+
+      <div class="nav-links">
+        <a href="/">sender</a>
+        <a href="/resell">resell</a>
+        <a href="/campaigns">campaigns</a>
+        <a href="/config">config</a>
+        <div class="dropdown">
+          <button><i class="fa-solid fa-user"></i>PROFILE</button>
+          <div class="dropdown-options">
+            <a href="/change-password">CHANGE PASSWORD</a>
+            <a href="/logout">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="campaigns-container"></div>
+    <!-- Include luxon from CDN -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.4/sweetalert2.all.min.js"
+      integrity="sha512-lTaUIREPGkPIN75aQtSK7bEt6w/YhlsMjWhhJ0X2LNTXySpI10ZPsz+lmcuz2BP7/WGBjAwbnavUhK4Yb3X13Q=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.0.0/build/global/luxon.min.js"></script>
+
+    <script>
+      var campaigns;
+      Swal.showLoading();
+
+      fetch("/api/campaigns", { method: "POST" })
+        .then((response) => {
+          Swal.hideLoading();
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((json) => {
+          campaigns = json.campaigns;
+          Swal.fire({
+            icon: "success",
+            title: "all campaign fetched successfully",
+            didOpen: () => {
+              Swal.hideLoading();
+            },
+          });
+
+          // Get the campaigns container
+          const campaignsContainer = document.getElementById(
+            "campaigns-container"
+          );
+
+          // Append each campaign div to the container
+          campaigns.forEach((campaign) => {
+            const campaignDiv = createCampaignDiv(campaign);
+            campaignsContainer.appendChild(campaignDiv);
+          });
+        })
+        .catch((error) => console.error(error));
+    </script>
+    <script>
+      function createCampaignDiv(campaign) {
+        const campaignDiv = document.createElement("div");
+        campaignDiv.classList.add("campaign-container");
+
+        // Create a link to /campaigns/:campaignId
+        const campaignLink = document.createElement("a");
+        campaignLink.href = `/campaigns/${campaign.campaign_id}`;
+        campaignLink.textContent = `Campaign ID: ${campaign.campaign_id}`;
+        campaignLink.classList.add("campaign-link");
+        campaignDiv.appendChild(campaignLink);
+
+        // Display other information in a row
+        const infoRow = document.createElement("div");
+        infoRow.classList.add("info-row");
+
+        // Now, istTimestamp contains the timestamp in IST format
+        infoRow.innerHTML = `
+        <strong>Total Emails:</strong> ${campaign.total_emails} |
+        <strong>Status:</strong> ${campaign.status} |
+        <strong>Sent:</strong> ${campaign.email_sent} |
+        <strong>Opened:</strong> ${campaign.email_opened} |
+        <strong>Bounced:</strong> ${campaign.bounced} |
+        <strong>Timestamp:</strong> ${new Date(campaign.time_stamp)}
+`;
+        campaignDiv.appendChild(infoRow);
+
+        return campaignDiv;
+      }
+    </script>
+  </body>
+</html>

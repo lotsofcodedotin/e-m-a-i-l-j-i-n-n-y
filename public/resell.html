@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reseller Panel</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+      * {
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        margin: 0px;
+        font-family: "segoe ui";
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      input:not([type="checkbox"]),
+      textarea,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+      }
+
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: block;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      .form,
+      h2 {
+        padding: 0px 40px 0px 40px;
+      }
+
+      h2 {
+        padding-bottom: 10px;
+      }
+      .nav {
+        width: 100%;
+        background-color: white;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .nav::after {
+        content: "";
+        width: 100%;
+        height: 2px;
+        background-color: #4caf50;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+      }
+
+      .nav > .nav-header {
+        display: inline;
+      }
+
+      .nav > .nav-header > .nav-title {
+        display: inline-block;
+        font-size: 22px;
+        color: #000;
+        padding: 0 20px;
+      }
+
+      .nav > .nav-btn {
+        display: none;
+      }
+
+      .nav > .nav-links {
+        display: inline;
+        float: right;
+        font-size: 18px;
+        text-transform: uppercase;
+      }
+
+      .nav > .nav-links > a {
+        display: inline-block;
+        padding: 13px 10px 13px 10px;
+        text-decoration: none;
+        color: #000;
+        transition: background-color 200ms;
+      }
+
+      .nav > .nav-links > a:hover {
+        background-color: #48a30c;
+        color: white;
+      }
+
+      .nav > #nav-check {
+        display: none;
+      }
+
+      .reselling-container {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin: 10px;
+        padding: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #f9f9f9;
+        transition: box-shadow 0.3s ease;
+      }
+
+      .reselling-container:hover {
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .info-row {
+        margin-top: 10px;
+      }
+
+      .info-row strong {
+        margin-right: 5px;
+        color: #333;
+      }
+
+      @media (max-width: 600px) {
+        .nav > .nav-btn {
+          display: inline-block;
+          position: absolute;
+          right: 0px;
+          top: 0px;
+        }
+        .nav > .nav-btn > label {
+          display: inline-block;
+          width: 50px;
+          height: 50px;
+          padding: 13px;
+          background-color: #000;
+        }
+        .nav > .nav-btn > label:hover,
+        .nav #nav-check:checked ~ .nav-btn > label {
+          background-color: rgb(0, 0, 0);
+        }
+        .nav > .nav-btn > label > span {
+          display: block;
+          width: 25px;
+          height: 10px;
+          border-top: 2px solid #eee;
+        }
+        .nav > .nav-links {
+          position: absolute;
+          display: block;
+          width: 100%;
+          background-color: #ccc;
+          height: 0px;
+          transition: all 0.3s ease-in;
+          overflow-y: hidden;
+          top: 50px;
+          left: 0px;
+          z-index: 10;
+        }
+        .nav > .nav-links > a {
+          display: block;
+          width: 100%;
+        }
+        .nav > #nav-check:not(:checked) ~ .nav-links {
+          height: 0px;
+        }
+        .nav > #nav-check:checked ~ .nav-links {
+          height: calc(100vh - 50px);
+          overflow-y: auto;
+        }
+      }
+
+      .logo {
+        height: 50px;
+      }
+
+      .dropdown {
+        display: inline-block;
+        position: relative;
+      }
+
+      .dropdown button {
+        border: none;
+        border-radius: 5px;
+        padding: 15px 30px;
+        font-size: 18px;
+        cursor: pointer;
+      }
+
+      .dropdown button:hover {
+        background-color: #ddd;
+      }
+
+      .dropdown-options {
+        display: none;
+        position: absolute;
+        z-index: 100;
+        right: 0;
+        top: 50px;
+        overflow: auto;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0px 10px 10px 0px rgba(0, 0, 0, 0.4);
+      }
+
+      .dropdown:hover .dropdown-options {
+        display: block;
+      }
+
+      .dropdown-options a {
+        display: block;
+        color: #000000;
+        padding: 5px;
+        text-decoration: none;
+        padding: 20px 40px;
+      }
+
+      .dropdown-options a:hover {
+        color: #0a0a23;
+        background-color: #ddd;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav">
+      <input type="checkbox" id="nav-check" />
+      <div class="nav-header">
+        <div class="nav-title">
+          <a href="/">
+            <img class="logo" src="/public/assets/img/logo.png" alt="logo" />
+          </a>
+        </div>
+      </div>
+      <div class="nav-btn">
+        <label for="nav-check">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
+      </div>
+
+      <div class="nav-links">
+        <a href="/">sender</a>
+        <a href="/resell">resell</a>
+        <a href="/campaigns">campaigns</a>
+        <a href="/config">config</a>
+        <div class="dropdown">
+          <button><i class="fa-solid fa-user"></i>PROFILE</button>
+          <div class="dropdown-options">
+            <a href="/change-password">CHANGE PASSWORD</a>
+            <a href="/logout">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <h2>Reseller Panel: <span id="available"></span></h2>
+    <form id="config" class="form" onsubmit="update(event)">
+      <label for="userEmail">User Email:</label>
+      <input
+        type="text"
+        id="userEmail"
+        name="userEmail"
+        required
+        placeholder="user@gmail.com"
+      />
+
+      <label for="license">No. of LICENSE:</label>
+      <input type="number" id="license" name="license" placeholder="7" />
+
+      <label for="password">Your Account Password:</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        required
+        autocomplete="new-password"
+        placeholder="*********"
+      />
+
+      <input type="checkbox" onclick="visibility()" />Show Password
+
+      <button type="submit">Give Licenses</button>
+    </form>
+
+    <h2>history</h2>
+
+    <div id="resells" style="padding: 0 20px"></div>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.4/sweetalert2.all.min.js"
+      integrity="sha512-lTaUIREPGkPIN75aQtSK7bEt6w/YhlsMjWhhJ0X2LNTXySpI10ZPsz+lmcuz2BP7/WGBjAwbnavUhK4Yb3X13Q=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      let availableGlobal;
+      function visibility() {
+        var x = document.getElementById("password");
+        if (x.type === "password") {
+          x.type = "text";
+        } else {
+          x.type = "password";
+        }
+      }
+
+      async function update(event) {
+        event.preventDefault();
+        Swal.showLoading();
+        const userEmail = document.querySelector("#userEmail").value;
+        const license = document.querySelector("#license").value;
+        const password = document.querySelector("#password").value;
+
+        const { value: accept } = await Swal.fire({
+          title: "Are you sure you want to continue?",
+          confirmButtonText: `
+    Continue&nbsp;<i class="fa fa-arrow-right"></i>
+  `,
+          inputValidator: (result) => {
+            return !result && "You need to confirm first.";
+          },
+        });
+        if (accept) {
+          if (!userEmail || !license || !password) {
+            showErrorPopup({ error: "All fields are required" });
+            return;
+          }
+          if (license > availableGlobal - 1) {
+            showErrorPopup({
+              error:
+                "Can not send licenses more than you have. you have to keep one license for yourself.",
+            });
+            return;
+          }
+
+          fetch("/api/resell", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              recEmail: userEmail,
+              license,
+              password,
+            }),
+          })
+            .then((response) => {
+              Swal.hideLoading();
+              if (!response.ok) {
+                throw response;
+              }
+              return response.json();
+            })
+            .then(handleSuccess)
+            .catch((error) => {
+              Swal.hideLoading();
+              if (error instanceof Response) {
+                // If it's a Response object, handle the error response with JSON data
+                error.json().then(showErrorPopup);
+              } else {
+                // Handle other types of errors
+                console.log(error);
+              }
+            });
+        }
+      }
+
+      function showErrorPopup(json) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: json["error"],
+        });
+      }
+
+      function handleSuccess(response) {
+        Swal.fire({
+          icon: "success",
+          title: "Reselling success",
+          text: response.message,
+        });
+        setTimeout(()=>{
+          window.location.href = "/resell";
+        }, 3000)
+      }
+      window.onload = () => {
+        fetch("/api/resells", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw response;
+            }
+            return response.json();
+          })
+          .then((json) => {
+            const campaignsContainer = document.getElementById("resells");
+
+            const available = json.results[0].available || 0;
+            availableGlobal = available;
+
+            document.querySelector("#available").textContent = available;
+            // Append each campaign div to the container
+            json.results.forEach((resell) => {
+              const campaignDiv = createResellingDiv(resell);
+              campaignsContainer.appendChild(campaignDiv);
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+
+        function createResellingDiv(reselling) {
+          const resellingDiv = document.createElement("div");
+          resellingDiv.classList.add("reselling-container");
+
+          // Display other information in a row
+          const infoRow = document.createElement("div");
+          infoRow.classList.add("info-row");
+
+          // Now, istTimestamp contains the timestamp in IST format
+          infoRow.innerHTML = `
+        <strong>to:</strong> ${
+          reselling.to_user != null ? reselling.to_user : 0
+        } |
+        <strong>licenses:</strong> ${
+          reselling.licenses != null ? reselling.licenses : 0
+        } |
+        <strong>time_stamp:</strong> ${new Date(
+          reselling.time_stamp
+        ).toDateString()}
+`;
+          resellingDiv.appendChild(infoRow);
+
+          return resellingDiv;
+        }
+      };
+    </script>
+  </body>
+</html>
