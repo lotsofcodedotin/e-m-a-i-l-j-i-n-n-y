@@ -414,10 +414,7 @@ The EmailJinny Team`;
 async function resells(req, res) {
   try {
     const query = `
-    SELECT reselling.to_user, reselling.licenses, reselling.time_stamp, users.licenses as available
-    FROM users
-    LEFT JOIN reselling ON reselling.from_user = users.email
-    WHERE users.email = ?
+    SELECT reselling.to_user, reselling.licenses, reselling.time_stamp, users.licenses as available FROM users LEFT JOIN reselling ON reselling.from_user = users.email WHERE users.email = ? ORDER by time_stamp DESC;
   `;
 
     const [results] = await pool.promise().execute(query, [req.user.email]);
@@ -496,7 +493,7 @@ Your Password was changed Successfully! 🥂
             
 Your new Password is ${newPassword}. Enjoy!
             
-if it was not you? <a href="http://localhost:5000/change-password/">change password using above password.</a>
+if it was not you? <a href="https://lotsofwms.in/change-password/">change password using above password.</a>
             
 Cheers,
 The EmailJinny Team`;
@@ -565,7 +562,7 @@ async function forgetPassword(req, res) {
     const message = `Hey ${email},
 Your EmailJInny password can be reset by clicking the button below. If you did not request a new password, please ignore this email.
 <br/>
-<a width: 200px; height: 50px; style="padding: 5px 10px; border-radius: 2px; background:color: rgb(88, 101, 242); color: #fff" href="http://localhost:5000/reset-password/${token}">RESET PASSWORD</a>
+<a width: 200px; height: 50px; style="padding: 5px 10px; border-radius: 2px; background:color: rgb(88, 101, 242); color: #fff" href="https://lotsofwms.in/reset-password/${token}">RESET PASSWORD</a>
 
 Cheers,
 The EmailJinny Team`;

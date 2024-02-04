@@ -8,7 +8,6 @@ const mime = require("mime-types");
 const createDOMPurify = require("dompurify");
 
 const { JSDOM } = require("jsdom");
-const { decrypt } = require("dotenv");
 
 function trackPOST(req, res) {
   console.log(
@@ -144,6 +143,8 @@ async function sendPOST(req, res) {
         </style></head><body>
           <div style="width: 100%; line-height: 2; padding: 30px;">
             ${emailMessage}
+
+            <div><img width="1" height="1" src="https://lotsofwms.in/public/assets/${campign_id}/${emailValue}/img.png" alt="pixel" /></div>
           </div>
           </body></html>`;
         // send next message from the pending queue

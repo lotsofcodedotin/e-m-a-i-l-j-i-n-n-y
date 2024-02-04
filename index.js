@@ -44,7 +44,7 @@ app.get("/public/assets/:campaign/:email/img.png", (req, res) => {
   try {
     axios
       .post(
-        `http://localhost:5000/api/track?email=${email}&campaign=${campaign}`
+        `https://lotsofwms.in/api/track?email=${email}&campaign=${campaign}`
       )
       .catch((err) => console.error("Error while tracking:", err))
       .finally(function () {
@@ -73,6 +73,6 @@ cron.schedule("0 0 * * *", async () => {
   }
 });
 
-app.listen(process.env.PORT || 9000, () => {
-  console.log("running ");
+app.listen(process.env.PORT, () => {
+  console.log("running on port " + process.env.PORT);
 });

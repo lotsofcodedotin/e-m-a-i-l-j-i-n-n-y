@@ -4,7 +4,7 @@ const campaigns = async function (req, res) {
   try {
     const { email } = req.user;
     const query =
-      "SELECT campaign.*, COUNT(sent.campaign_id) AS email_sent, COUNT(bounced.campaign_id) AS bounced, COUNT( opened.campaign_id) AS email_opened FROM campaign LEFT JOIN sent ON sent.campaign_id = campaign.campaign_id LEFT JOIN bounced ON bounced.campaign_id = campaign.campaign_id LEFT JOIN opened ON opened.campaign_id = campaign.campaign_id WHERE campaign.sender = ? GROUP BY campaign.campaign_id ORDER BY `campaign`.`time_stamp` DESC;";
+      "SELECT campaign.*, COUNT(DISTINCT sent.receiver) AS email_sent, COUNT(DISTINCT bounced.receiver) AS bounced, COUNT(DISTINCT opened.receiver) AS email_opened FROM campaign LEFT JOIN sent ON sent.campaign_id = campaign.campaign_id LEFT JOIN bounced ON bounced.campaign_id = campaign.campaign_id LEFT JOIN opened ON opened.campaign_id = campaign.campaign_id WHERE campaign.sender = ? GROUP BY campaign.campaign_id ORDER BY `campaign`.`time_stamp` DESC;";
     const values = [email];
 
     var [results] = await pool.promise().execute(query, values);
