@@ -190,11 +190,17 @@ attachmentsInput.addEventListener("change", function (e) {
 function addVariable(event) {
   if (event.target.id == "subjectVariable") {
     document.querySelector("#subject").value += event.target.value;
-    event.target.value = "";
   } else {
-    document.querySelector("#message").value += event.target.value;
-    event.target.value = "";
+    // Assuming the rich text editor has an ID of #message
+    let currentContent = $("#message").val();
+    $("#message").val(currentContent + `<p>${event.target.value}</p>`);
+
+    // Trigger the change event to update the rich text editor
+    $("#message").trigger("change");
   }
+
+  // Clear the input field
+  event.target.value = "";
 }
 
 /*** Don't change */
