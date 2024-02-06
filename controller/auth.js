@@ -37,14 +37,21 @@ function verified(req, res, next) {
 
 function subscribed(req, res, next) {
   const subscribed = req.cookies.subscribed;
-  if (!subscribed) return res.redirect("/subscribe");
+  if (!subscribed) {
+    req.user.subscribed = false;
+    req.subscribed = false;
+    return next();
+  }
+
   try {
     const decoded = jwt.verify(subscribed, process.env.JWT_SECRET);
     req.user.subscribed = decoded;
-    next();
+    req.subscribed = true;
+    return next();
   } catch (err) {
-    console.log(err);
-    res.redirect("/subscribe");
+    req.user.subscribed = false;
+    req.subscribed = false;
+    return next();
   }
 }
 

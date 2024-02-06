@@ -1,5 +1,5 @@
 const express = require("express");
-const { authenticate, verified, subscribed } = require("../controller/auth");
+const { authenticate, verified } = require("../controller/auth");
 const axios = require("axios");
 
 const rateLimit = require("express-rate-limit");
@@ -17,11 +17,9 @@ router.route("/login").get(limiter, function (req, res) {
   res.sendFile(path.resolve("public/login.html"));
 });
 
-router
-  .route("/config")
-  .get(authenticate, verified, subscribed, function (req, res) {
-    res.sendFile(path.resolve("public/config.html"));
-  });
+router.route("/config").get(authenticate, verified, function (req, res) {
+  res.sendFile(path.resolve("public/config.html"));
+});
 
 router.route("/logout").get(function (req, res) {
   res.clearCookie("jwtToken");
@@ -50,7 +48,7 @@ router.route("/subscribe").get(authenticate, verified, (req, res) => {
   res.sendFile(path.resolve("public/subscribe.html"));
 });
 
-router.route("/resell").get(authenticate, verified, subscribed, (req, res) => {
+router.route("/resell").get(authenticate, verified, (req, res) => {
   res.sendFile(path.resolve("public/resell.html"));
 });
 

@@ -27,11 +27,11 @@ const { campaigns, campaign } = require("../controller/campaigns");
 router
   .get("/", (req, res) => res.send("working"))
   .post("/track", trackPOST)
-  .post("/send", authenticate, verified, subscribed, secrets, sendPOST)
+  .post("/send", authenticate, verified, secrets, subscribed, sendPOST)
   .post("/campaigns", authenticate, verified, campaigns)
-  .get("/campaigns/:id", authenticate, verified, campaign)
-  .post("/resell", authenticate, verified, subscribed, resell)
-  .get("/resells", authenticate, verified, subscribed, resells);
+  .get("/campaigns/:id", authenticate, verified, campaign);
+// .post("/resell", authenticate, verified, resell)
+// .get("/resells", authenticate, verified, resells);
 
 router.route("/register").post(limiter, register);
 router.route("/login").post(limiter, login);

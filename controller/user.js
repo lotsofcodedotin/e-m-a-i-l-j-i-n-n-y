@@ -79,14 +79,13 @@ const login = async (req, res) => {
       }
 
       // Return the token and user data
-      const expiryDate = new Date(Date.now() + 86400000);
 
       res.cookie("jwtToken", token, {
         httpOnly: true,
         secure: true,
       });
 
-      if (user.licenses > 0) {
+      if (user.subscription_end_date > new Date(Date.now())) {
         const subscribeToken = jwt.sign(
           { email: user.email },
           process.env.JWT_SECRET
@@ -493,7 +492,7 @@ Your Password was changed Successfully! 🥂
             
 Your new Password is ${newPassword}. Enjoy!
             
-if it was not you? <a href="https://lotsofwms.in/change-password/">change password using above password.</a>
+if it was not you? <a href="https://app.emailjinny.com/change-password/">change password using above password.</a>
             
 Cheers,
 The EmailJinny Team`;
@@ -562,7 +561,7 @@ async function forgetPassword(req, res) {
     const message = `Hey ${email},
 Your EmailJInny password can be reset by clicking the button below. If you did not request a new password, please ignore this email.
 <br/>
-<a width: 200px; height: 50px; style="padding: 5px 10px; border-radius: 2px; background:color: rgb(88, 101, 242); color: #fff" href="https://lotsofwms.in/reset-password/${token}">RESET PASSWORD</a>
+<a width: 200px; height: 50px; style="padding: 5px 10px; border-radius: 2px; background:color: rgb(88, 101, 242); color: #fff" href="https://app.emailjinny.com/reset-password/${token}">RESET PASSWORD</a>
 
 Cheers,
 The EmailJinny Team`;

@@ -265,7 +265,7 @@
 
       <div class="nav-links">
         <a href="/">sender</a>
-        <a href="/resell">resell</a>
+        <!-- <a href="/resell">resell</a>  -->
         <a href="/campaigns">campaigns</a>
         <a href="/config">config</a>
         <div class="dropdown">
@@ -402,9 +402,9 @@
           title: "Reselling success",
           text: response.message,
         });
-        setTimeout(()=>{
+        setTimeout(() => {
           window.location.href = "/resell";
-        }, 3000)
+        }, 3000);
       }
       window.onload = () => {
         fetch("/api/resells", {

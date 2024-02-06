@@ -26,25 +26,20 @@ app.use("/public", express.static(__dirname + "/public"));
 app.use(frontendRouter);
 app.use("/api", apiRouter);
 
-app.get("/", authenticate, verified, subscribed, secerts, (req, res) => {
+app.get("/", authenticate, verified, secerts, (req, res) => {
   res.sendFile(path.resolve("public/main.html"));
 });
 
 app.get("/public/assets/:campaign/:email/img.png", (req, res) => {
-  console.log("got request");
   // Extract email and campaign from query parameters
   const email = req.params.email;
   const campaign = req.params.campaign;
-  const img = fs.readFileSync(path.resolve("public/assets/img/img.gif"));
+  const img = fs.readFileSync(path.resolve("public/assets/img/img.png"));
   const base64Image = img.toString("base64");
-  const requestBody = {
-    email,
-    campaign,
-  };
   try {
     axios
       .post(
-        `https://lotsofwms.in/api/track?email=${email}&campaign=${campaign}`
+        `https://app.emailjinny.com/api/track?email=${email}&campaign=${campaign}`
       )
       .catch((err) => console.error("Error while tracking:", err))
       .finally(function () {
@@ -59,11 +54,13 @@ cron.schedule("0 0 * * *", async () => {
   try {
     await pool.getConnection((err, connection) => {
       if (err) throw err;
-      const sqlQuery = `UPDATE users SET licenses = licenses - 1 WHERE DATEDIFF(CURDATE(), joining_date) >= 1 AND DATEDIFF(CURDATE(), joining_date) % 28 = 0 and licenses > 0`;
+      const sqlQuery = `UPDATE users
+      SET pack = 'free'
+      WHERE DATEDIFF(CURDATE(), subscription_end_date) = 0;`;
       connection.query(sqlQuery, (err, result) => {
         if (err) throw err;
         else {
-          console.log("Successfully updated users licenses");
+          console.log("Successfully updated users subscriptions");
           connection.release();
         }
       });
