@@ -40,10 +40,8 @@ async function sendPOST(req, res) {
   try {
     if (req.user.subscribed == false) {
       await sendEmailWithBrand(req, res);
-      console.log("ran with brand");
     } else {
       await sendEmailWithoutBrand(req, res);
-      console.log("ran without brand");
     }
   } catch (err) {
     console.error("Error sending emails:", err);
@@ -53,6 +51,14 @@ async function sendPOST(req, res) {
 
 async function sendEmailWithoutBrand(req, res) {
   try {
+    const { plan, subscription_end_date } = req.user.subscribed;
+
+    if (new Date(subscription_end_date) < new Date(Date.now())) {
+      res.clearCookie("subscribed");
+      return res.status(403).json({ error: "Invalid subscription" });
+    }
+
+    let i = 0;
     var { to, subject, message, attachments } = req.body;
     let oneSend = false;
     const window = new JSDOM("").window;
@@ -77,9 +83,9 @@ async function sendEmailWithoutBrand(req, res) {
 
     to = JSON.parse(to);
 
-    // if (to.length <= 0) {
-    //   throw new Error("must have at least one email address");
-    // }
+    if (to.length <= 0) {
+      throw new Error("must have at least one email address");
+    }
     const campign_id = pixel.generateUniquePixel();
     const campaign_report = {
       id: campign_id,
@@ -148,20 +154,46 @@ async function sendEmailWithoutBrand(req, res) {
         var emailSubject = replacePlaceholders(subject, recipientObject);
         var emailMessage = replacePlaceholders(message, recipientObject);
 
-        var html = `<html><head><style>
-@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-        *{
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-        </style></head><body>
-          <div style="width: 100%; line-height: 2; padding: 30px;">
-            ${emailMessage}
+        
 
-            <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${campign_id}/${emailValue}/img.png" alt="pixel" /></div>
-          </div>
-          </body></html>`;
+        if (plan == "JINNY" && i > 100) {
+          var html = `<html><head><style>
+          @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+                  *{
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                  }
+                  </style></head><body>
+                    <div style="width: 100%; line-height: 2; padding: 30px;">
+                      ${emailMessage}
+          
+                      <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${campign_id}/${emailValue}/img.png" alt="pixel" /></div>
+                      <div style="text-align: center; padding: 40px">
+                      <a href="https://emailjinny.com/" style="text-decoration: none; color: #d90429;">
+                        <h6 style="color: #d90429;font-size:10px; font-family:'Roboto', sans-sarif;">send unlimited free email with 💝</h6>
+                        <img style="max-width: 250px" src="https://app.emailjinny.com/public/assets/img/logo.png"/>
+                      </a>            
+                      </div>
+                    </div>
+                    </body></html>`;
+        } else {
+          var html = `<html><head><style>
+          @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+                  *{
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                  }
+                  </style></head><body>
+                    <div style="width: 100%; line-height: 2; padding: 30px;">
+                      ${emailMessage}
+          
+                      <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${campign_id}/${emailValue}/img.png" alt="pixel" /></div>
+                    </div>
+                    </body></html>`;
+        }
+
         // send next message from the pending queue
         const info = await transporter.sendMail({
           from: decryptedEmail,
@@ -176,6 +208,7 @@ async function sendEmailWithoutBrand(req, res) {
           if (!oneSend) {
             oneSent();
             oneSend = true;
+            i++;
           }
         } else if (info.rejected && info.rejected.length > 0) {
           campaign_report.bounced.push(info);
@@ -291,9 +324,9 @@ async function sendEmailWithBrand(req, res) {
 
     to = JSON.parse(to);
 
-    // if (to.length <= 0) {
-    //   throw new Error("must have at least one email address");
-    // }
+    if (to.length <= 0) {
+      throw new Error("must have at least one email address");
+    }
     const campign_id = pixel.generateUniquePixel();
     const campaign_report = {
       id: campign_id,

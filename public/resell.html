@@ -250,8 +250,20 @@
       <input type="checkbox" id="nav-check" />
       <div class="nav-header">
         <div class="nav-title">
-          <a href="/">
-            <img class="logo" src="/public/assets/img/logo.png" alt="logo" />
+          <a href="/" style="position: relative">
+            <img
+              class="logo"
+              src="/public/assets/img/logo.png"
+              alt="logo"
+            /><span
+              style="
+                position: absolute;
+                font-size: 10px;
+                font-weight: 900;
+                font-family: 'Roboto', sans-serif;
+              "
+              id="pro"
+            ></span>
           </a>
         </div>
       </div>
@@ -272,6 +284,7 @@
           <button><i class="fa-solid fa-user"></i>PROFILE</button>
           <div class="dropdown-options">
             <a href="/change-password">CHANGE PASSWORD</a>
+            <a href="/subscribe">Subscribe</a>
             <a href="/logout">Logout</a>
           </div>
         </div>
@@ -309,6 +322,18 @@
     <h2>history</h2>
 
     <div id="resells" style="padding: 0 20px"></div>
+    <script>
+      fetch("/api/my-plan", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "GET",
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          return (document.querySelector("#pro").innerHTML = json.message);
+        });
+    </script>
 
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.4/sweetalert2.all.min.js"

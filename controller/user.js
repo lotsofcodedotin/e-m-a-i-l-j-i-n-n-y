@@ -65,7 +65,6 @@ const login = async (req, res) => {
 
     if (match) {
       const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET);
-
       if (user.verified == true) {
         const verifiedJWT = jwt.sign(
           { verified: true },
@@ -85,9 +84,28 @@ const login = async (req, res) => {
         secure: true,
       });
 
-      if (user.subscription_end_date > new Date(Date.now())) {
+      let [currentPack] = await pool
+        .promise()
+        .execute(
+          "SELECT * FROM subscription WHERE user_email = ? AND subscription_end_date > CURRENT_TIMESTAMP ORDER BY `subscription`.`subscription_start_date`;",
+          [user.email]
+        );
+
+      if (currentPack.length != 0) {
+        var { plan,subscription_start_date, subscription_end_date, pending_daily_withoutlogo_emails } =
+          currentPack[0];
+      } else {
+        var plan = "FREE";
+      }
+
+      if (plan != "FREE") {
         const subscribeToken = jwt.sign(
-          { email: user.email },
+          {
+            email: user.email,
+            plan,
+            subscription_end_date,
+            pending_daily_withoutlogo_emails,
+          },
           process.env.JWT_SECRET
         );
 

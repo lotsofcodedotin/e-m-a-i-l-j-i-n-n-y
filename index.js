@@ -50,26 +50,6 @@ app.get("/public/assets/:campaign/:email/img.png", (req, res) => {
   }
 });
 
-cron.schedule("0 0 * * *", async () => {
-  try {
-    await pool.getConnection((err, connection) => {
-      if (err) throw err;
-      const sqlQuery = `UPDATE users
-      SET pack = 'free'
-      WHERE DATEDIFF(CURDATE(), subscription_end_date) = 0;`;
-      connection.query(sqlQuery, (err, result) => {
-        if (err) throw err;
-        else {
-          console.log("Successfully updated users subscriptions");
-          connection.release();
-        }
-      });
-    });
-  } catch (err) {
-    console.log(err);
-  }
-});
-
 app.listen(process.env.PORT, () => {
   console.log("running on port " + process.env.PORT);
 });

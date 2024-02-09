@@ -29,8 +29,20 @@
       <input type="checkbox" id="nav-check" />
       <div class="nav-header">
         <div class="nav-title">
-          <a href="">
-            <img class="logo" src="/public/assets/img/logo.png" alt="logo" />
+          <a href="/" style="position: relative">
+            <img
+              class="logo"
+              src="/public/assets/img/logo.png"
+              alt="logo"
+            /><span
+              style="
+                position: absolute;
+                font-size: 10px;
+                font-weight: 900;
+                font-family: 'Roboto', sans-serif;
+              "
+              id="pro"
+            ></span>
           </a>
         </div>
       </div>
@@ -51,6 +63,7 @@
           <button><i class="fa-solid fa-user"></i>PROFILE</button>
           <div class="dropdown-options">
             <a href="/change-password">CHANGE PASSWORD</a>
+            <a href="/subscribe">Subscribe</a>
             <a href="/logout">Logout</a>
           </div>
         </div>
@@ -105,7 +118,9 @@
               style="
                 border-width: 1px;
                 border-color: rgba(0, 0, 0, 0.3);
-                width: max-content;
+                max-width: 100px;
+                background-color: black;
+                color: white;
               "
             />
           </div>
@@ -133,6 +148,9 @@
                   width: max-content;
                   position: absolute;
                   z-index: 10;
+                  max-width: 100px;
+                  background-color: black;
+                  color: white;
                 "
               />
             </div>
@@ -148,6 +166,19 @@
     </div>
 
     <datalist hidden class="variableHelper" id="variableHelper"> </datalist>
+
+    <script>
+      fetch("/api/my-plan", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "GET",
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          return (document.querySelector("#pro").innerHTML = json.message);
+        });
+    </script>
 
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
