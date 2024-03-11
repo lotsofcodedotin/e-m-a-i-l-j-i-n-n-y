@@ -127,26 +127,29 @@ fileInput.addEventListener("change", (e) => {
       // Access the data from the workbook
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-      const tableData = await XLSX.utils
-        .sheet_to_json(worksheet, {
-          headers: 1,
-        })
-        .filter((data) => {
-          let pattern = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-          return pattern.test(
-            data?.email || data.Email || data[Object.keys(data)][0]
-          );
-        });
+      const tableData = await XLSX.utils.sheet_to_json(worksheet, {
+        headers: 1,
+      });
+      // .filter((data) => {
+      //   let pattern = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+      //   return data[Object.keys(data)][0];
+
+      //   return pattern.test(
+      //     data?.email || data.Email || data[Object.keys(data)][0]
+      //   );
+      // });
 
       if (tableData.length > 0) {
         document.querySelector("#count").textContent =
           tableData.length + " emails";
-        jsonData = await XLSX.utils.sheet_to_json(worksheet).filter((data) => {
-          let pattern = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-          return pattern.test(
-            data?.email || data.Email || data[Object.keys(data)][0]
-          );
-        });
+        jsonData = await XLSX.utils.sheet_to_json(worksheet);
+        // .filter((data) => {
+        //   let pattern = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+        //   return data[Object.keys(data)][0];
+        //   // return pattern.test(
+        //   //   data?.email || data.Email || data[Object.keys(data)][0]
+        //   // );
+        // });
 
         for (let i of document.querySelectorAll(".variableHelper")) {
           i.innerHTML = "";

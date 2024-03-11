@@ -154,8 +154,6 @@ async function sendEmailWithoutBrand(req, res) {
         var emailSubject = replacePlaceholders(subject, recipientObject);
         var emailMessage = replacePlaceholders(message, recipientObject);
 
-        
-
         if (plan == "JINNY" && i > 100) {
           var html = `<html><head><style>
           @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
@@ -507,7 +505,6 @@ async function sendEmailWithBrand(req, res) {
         bouncedValues.push(campign_id);
         bouncedValues.push(receiverBouncedValues[i]);
       }
-      console.log(campaign_report.error);
       var [resultBounced] = await pool
         .promise()
         .execute(bouncedQuery, bouncedValues);
