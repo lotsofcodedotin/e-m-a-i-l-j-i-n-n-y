@@ -29,7 +29,6 @@ async function sendEmail(event) {
       to,
       subject,
       message: message,
-      attachments,
     }),
   })
     .then((response) => {

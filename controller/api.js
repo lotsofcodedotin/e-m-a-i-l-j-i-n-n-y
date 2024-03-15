@@ -421,12 +421,13 @@ async function sendEmailWithBrand(req, res) {
           html: html,
           attachments: attachments.length > 0 ? attachments : null,
         });
+        console.log(info);
 
         if (info.accepted && info.accepted.length > 0) {
           campaign_report.sent.push(info);
-          if (!oneSend) {
+          oneSend = true;
+          if (oneSend) {
             oneSent();
-            oneSend = true;
           }
         } else if (info.rejected && info.rejected.length > 0) {
           campaign_report.bounced.push(info);
@@ -435,9 +436,11 @@ async function sendEmailWithBrand(req, res) {
         }
       } catch (err) {
         console.log(err);
-        return res.status(500).json({
-          error: "Credentials for Sending Email may be wrong. Please Check",
-        });
+        if (err.responseCode === 535) {
+          res.status(535).json({
+            error: "Bad Authentication",
+          });
+        }
       }
     }
 
