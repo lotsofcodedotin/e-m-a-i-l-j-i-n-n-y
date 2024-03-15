@@ -45,7 +45,7 @@ async function sendPOST(req, res) {
     }
   } catch (err) {
     console.error("Error sending emails:", err);
-    return res.status(500).json({ success: false, error: err.message });
+    return res.status(500).json({ success: false, error: "Server Error" });
   }
 }
 
@@ -421,13 +421,12 @@ async function sendEmailWithBrand(req, res) {
           html: html,
           attachments: attachments.length > 0 ? attachments : null,
         });
-        console.log(info);
 
         if (info.accepted && info.accepted.length > 0) {
           campaign_report.sent.push(info);
-          oneSend = true;
-          if (oneSend) {
+          if (!oneSend) {
             oneSent();
+            oneSend = true;
           }
         } else if (info.rejected && info.rejected.length > 0) {
           campaign_report.bounced.push(info);
@@ -514,7 +513,7 @@ async function sendEmailWithBrand(req, res) {
     }
     transporter.close();
   } catch (err) {
-    throw Error(err);
+    res.status(500).json({ error: err });
   }
 }
 

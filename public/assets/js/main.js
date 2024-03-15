@@ -33,10 +33,18 @@ async function sendEmail(event) {
   })
     .then((response) => {
       Swal.hideLoading();
-      if (!response.ok) {
+      if (response.status === 413) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: "Use Less Emails",
+        });
+      } else if (!response.ok) {
         throw response;
       }
-      return response.json();
+      if (response.ok) {
+        return response.json();
+      }
     })
     .then(handleResponse)
     .catch((error) => {
