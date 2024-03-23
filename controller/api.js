@@ -51,14 +51,6 @@ async function sendPOST(req, res) {
 
 async function sendEmailWithoutBrand(req, res) {
   try {
-    const { plan, subscription_end_date } = req.user.subscribed;
-
-    if (new Date(subscription_end_date) < new Date(Date.now())) {
-      res.clearCookie("subscribed");
-      return res.status(403).json({ error: "Invalid subscription" });
-    }
-
-    let i = 0;
     var { to, subject, message, attachments } = req.body;
     let oneSend = false;
     const window = new JSDOM("").window;
@@ -154,44 +146,26 @@ async function sendEmailWithoutBrand(req, res) {
         var emailSubject = replacePlaceholders(subject, recipientObject);
         var emailMessage = replacePlaceholders(message, recipientObject);
 
-        if (plan == "JINNY" && i > 100) {
-          var html = `<html><head><style>
-          @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-                  *{
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                  }
-                  </style></head><body>
-                    <div style="width: 100%; line-height: 2; padding: 30px;">
-                      ${emailMessage}
-          
-                      <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${campign_id}/${emailValue}/img.png" alt="pixel" /></div>
-                      <div style="text-align: center; padding: 40px">
-                      <a href="https://emailjinny.com/" style="text-decoration: none; color: #d90429;">
-                        <h6 style="color: #d90429;font-size:10px; font-family:'Roboto', sans-sarif;">send unlimited free email with 💝</h6>
-                        <img style="max-width: 250px" src="https://app.emailjinny.com/public/assets/img/logo.png"/>
-                      </a>            
-                      </div>
+        var html = `<html><head><style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+                *{
+                  margin: 0;
+                  padding: 0;
+                  box-sizing: border-box;
+                }
+                </style></head><body>
+                  <div style="width: 100%; line-height: 2; padding: 30px;">
+                    ${emailMessage}
+        
+                    <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${campign_id}/${emailValue}/img.png" alt="pixel" /></div>
+                    <div style="text-align: center; padding: 40px">
+                    <a href="https://emailjinny.com/" style="text-decoration: none; color: #d90429;">
+                      <h6 style="color: #d90429;font-size:10px; font-family:'Roboto', sans-sarif;">send unlimited free email with 💝</h6>
+                      <img style="max-width: 250px" src="https://app.emailjinny.com/public/assets/img/logo.png"/>
+                    </a>            
                     </div>
-                    </body></html>`;
-        } else {
-          var html = `<html><head><style>
-          @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-                  *{
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                  }
-                  </style></head><body>
-                    <div style="width: 100%; line-height: 2; padding: 30px;">
-                      ${emailMessage}
-          
-                      <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${campign_id}/${emailValue}/img.png" alt="pixel" /></div>
-                    </div>
-                    </body></html>`;
-        }
-
+                  </div>
+                  </body></html>`;
         // send next message from the pending queue
         const info = await transporter.sendMail({
           from: decryptedEmail,
@@ -206,7 +180,6 @@ async function sendEmailWithoutBrand(req, res) {
           if (!oneSend) {
             oneSent();
             oneSend = true;
-            i++;
           }
         } else if (info.rejected && info.rejected.length > 0) {
           campaign_report.bounced.push(info);
@@ -215,9 +188,21 @@ async function sendEmailWithoutBrand(req, res) {
         }
       } catch (err) {
         console.log(err);
-        return res.status(500).json({
-          error: "Credentials for Sending Email may be wrong. Please Check",
-        });
+        if (err.responseCode === 535) {
+          const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
+          const updateValues = ["failed", campign_id];
+          await pool.promise().execute(updateQuery, updateValues);
+          return res.status(535).json({
+            error: "Bad Authentication",
+          });
+        } else {
+          const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
+          const updateValues = ["failed", campign_id];
+          await pool.promise().execute(updateQuery, updateValues);
+          return res.status(403).json({
+            error: "Something went wrong from Your Side",
+          });
+        }
       }
     }
 
@@ -285,14 +270,13 @@ async function sendEmailWithoutBrand(req, res) {
         bouncedValues.push(campign_id);
         bouncedValues.push(receiverBouncedValues[i]);
       }
-      console.log(campaign_report.error);
       var [resultBounced] = await pool
         .promise()
         .execute(bouncedQuery, bouncedValues);
     }
     transporter.close();
   } catch (err) {
-    throw Error(err);
+    res.status(500).json({ error: err });
   }
 }
 
