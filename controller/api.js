@@ -436,8 +436,18 @@ async function sendEmailWithBrand(req, res) {
       } catch (err) {
         console.log(err);
         if (err.responseCode === 535) {
-          res.status(535).json({
+          const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
+          const updateValues = ["failed", campign_id];
+          await pool.promise().execute(updateQuery, updateValues);
+          return res.status(535).json({
             error: "Bad Authentication",
+          });
+        } else {
+          const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
+          const updateValues = ["failed", campign_id];
+          await pool.promise().execute(updateQuery, updateValues);
+          return res.status(403).json({
+            error: "Something went wrong from Your Side",
           });
         }
       }
