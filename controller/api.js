@@ -2,7 +2,11 @@ const pixel = require("../pixel");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const pool = require("../models/connection");
-const { decryptUserData, replacePlaceholders } = require("./AES");
+const {
+  decryptUserData,
+  replacePlaceholders,
+  encryptUserData,
+} = require("./AES");
 const mime = require("mime-types");
 
 const createDOMPurify = require("dompurify");
@@ -78,9 +82,9 @@ async function sendEmailWithoutBrand(req, res) {
     if (to.length <= 0) {
       throw new Error("must have at least one email address");
     }
-    const campign_id = pixel.generateUniquePixel();
+    const campaign_id = await pixel.generateUniquePixel();
     const campaign_report = {
-      id: campign_id,
+      id: campaign_id,
       total_sent: to.length,
       sent: [],
       bounced: [],
@@ -101,22 +105,23 @@ async function sendEmailWithoutBrand(req, res) {
     const maxRatePerMinute = await decryptUserData(max);
 
     let transporter = nodemailer.createTransport({
-      pool: true,
       host: decryptedHost,
       port: decryptedPort,
       secure: decryptedSecure,
-      maxConnections: 1,
       auth: {
         user: decryptedEmail,
         pass: decryptedPassword,
       },
-      rateLimit: maxRatePerMinute || 5,
-      rateDelta: 60 * 1000,
     });
 
     // Insert initial campaign details into the database
     const startQuery = `INSERT INTO campaign (campaign_id, sender, status, total_emails) VALUES (?, ?, ?, ?);`;
-    const startValues = [campign_id, req.user.email, "started", "" + to.length];
+    const startValues = [
+      campaign_id,
+      req.user.email,
+      "started",
+      "" + to.length,
+    ];
     await pool.promise().execute(startQuery, startValues);
 
     function oneSent() {
@@ -129,86 +134,86 @@ async function sendEmailWithoutBrand(req, res) {
 
     // Send emails to multiple recipients
     for (const recipientObject of to) {
-      try {
-        // Ensure recipientObject is not empty
-        if (!recipientObject) {
-          throw new Error("Recipient object is empty.");
-        }
-
-        // Extract email address from recipientObject
-        var emailValue = recipientObject[Object.keys(recipientObject)[0]];
-
-        // Ensure emailValue is defined
-        if (!emailValue) {
-          throw new Error("Recipient email address is empty.");
-        }
-
-        var emailSubject = replacePlaceholders(subject, recipientObject);
-        var emailMessage = replacePlaceholders(message, recipientObject);
-
-        var html = `<html><head><style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-                *{
-                  margin: 0;
-                  padding: 0;
-                  box-sizing: border-box;
-                }
-                </style></head><body>
-                  <div style="width: 100%; line-height: 2; padding: 30px;">
-                    ${emailMessage}
-        
-                    <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${campign_id}/${emailValue}/img.png" alt="pixel" /></div>
-                    <div style="text-align: center; padding: 40px">
-                    <a href="https://emailjinny.com/" style="text-decoration: none; color: #d90429;">
-                      <h6 style="color: #d90429;font-size:10px; font-family:'Roboto', sans-sarif;">send unlimited free email with 💝</h6>
-                      <img style="max-width: 250px" src="https://app.emailjinny.com/public/assets/img/logo.png"/>
-                    </a>            
-                    </div>
-                  </div>
-                  </body></html>`;
-        // send next message from the pending queue
-        const info = await transporter.sendMail({
-          from: decryptedEmail,
-          to: emailValue,
-          subject: emailSubject,
-          html: html,
-          attachments: attachments.length > 0 ? attachments : null,
-        });
-
-        if (info.accepted && info.accepted.length > 0) {
-          campaign_report.sent.push(info);
-          if (!oneSend) {
-            oneSent();
-            oneSend = true;
+      setTimeout(async () => {
+        try {
+          // Ensure recipientObject is not empty
+          if (!recipientObject) {
+            throw new Error("Recipient object is empty.");
           }
-        } else if (info.rejected && info.rejected.length > 0) {
-          campaign_report.bounced.push(info);
-        } else {
-          campaign_report.error.push({ info, receiver: emailValue });
-        }
-      } catch (err) {
-        console.log(err);
-        if (err.responseCode === 535) {
-          const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
-          const updateValues = ["failed", campign_id];
-          await pool.promise().execute(updateQuery, updateValues);
-          return res.status(535).json({
-            error: "Bad Authentication",
+
+          // Extract email address from recipientObject
+          var emailValue = recipientObject[Object.keys(recipientObject)[0]];
+
+          // Ensure emailValue is defined
+          if (!emailValue) {
+            throw new Error("Recipient email address is empty.");
+          }
+
+          var emailSubject = replacePlaceholders(subject, recipientObject);
+          var emailMessage = replacePlaceholders(message, recipientObject);
+          let secretEmail = await encryptUserData(emailValue);
+          secretEmail.replaceAll("/", "*");
+          let secretCampaignId = await encryptUserData(campaign_id);
+          secretCampaignId = secretCampaignId.replaceAll("/", "*");
+
+          var html = `<html><head><style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+          *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          </style></head><body>
+            <div style="width: 100%; line-height: 2; padding: 30px;">
+              ${emailMessage}
+  
+              <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${secretEmail}/${secretCampaignId}/logo.png" alt="important" /></div>
+            </div>
+            </body></html>`;
+          // send next message from the pending queue
+          const info = await transporter.sendMail({
+            from: decryptedEmail,
+            to: emailValue,
+            subject: emailSubject,
+            html: html,
+            attachments: attachments.length > 0 ? attachments : null,
           });
-        } else {
-          const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
-          const updateValues = ["failed", campign_id];
-          await pool.promise().execute(updateQuery, updateValues);
-          return res.status(403).json({
-            error: "Something went wrong from Your Side",
-          });
+
+          if (info.accepted && info.accepted.length > 0) {
+            campaign_report.sent.push(info);
+            if (!oneSend) {
+              oneSent();
+              oneSend = true;
+            }
+          } else if (info.rejected && info.rejected.length > 0) {
+            campaign_report.bounced.push(info);
+          } else {
+            campaign_report.error.push({ info, receiver: emailValue });
+          }
+        } catch (err) {
+          console.log(err);
+          if (err.responseCode === 535) {
+            const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
+            const updateValues = ["failed", campaign_id];
+            await pool.promise().execute(updateQuery, updateValues);
+            return res.status(535).json({
+              error: "Bad Authentication",
+            });
+          } else {
+            const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
+            const updateValues = ["failed", campaign_id];
+            await pool.promise().execute(updateQuery, updateValues);
+            return res.status(403).json({
+              error: "Something went wrong from Your Side",
+            });
+          }
         }
-      }
+      }, 60000 / maxRatePerMinute);
     }
 
     // Update campaign status in the database
     const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
-    const updateValues = ["completed", campign_id];
+    const updateValues = ["completed", campaign_id];
     await pool.promise().execute(updateQuery, updateValues);
 
     // Process sent and bounced recipients
@@ -225,7 +230,7 @@ async function sendEmailWithoutBrand(req, res) {
       sentQuery += ";";
 
       for (let i = 0; i < campaign_report.sent.length; i++) {
-        sentValues.push(campign_id);
+        sentValues.push(campaign_id);
         sentValues.push(receiverSentValues[i]);
       }
       var [resultSent] = await pool.promise().execute(sentQuery, sentValues);
@@ -246,7 +251,7 @@ async function sendEmailWithoutBrand(req, res) {
       rejectedQuery += ";";
 
       for (let i = 0; i < campaign_report.bounced.length; i++) {
-        rejectedValues.push(campign_id);
+        rejectedValues.push(campaign_id);
         rejectedValues.push(receiverRejectedValues[i]);
       }
       var [resultRejected] = await pool
@@ -267,7 +272,7 @@ async function sendEmailWithoutBrand(req, res) {
       bouncedQuery += ";";
 
       for (let i = 0; i < campaign_report.error.length; i++) {
-        bouncedValues.push(campign_id);
+        bouncedValues.push(campaign_id);
         bouncedValues.push(receiverBouncedValues[i]);
       }
       var [resultBounced] = await pool
@@ -309,9 +314,9 @@ async function sendEmailWithBrand(req, res) {
     if (to.length <= 0) {
       throw new Error("must have at least one email address");
     }
-    const campign_id = pixel.generateUniquePixel();
+    const campaign_id = await pixel.generateUniquePixel();
     const campaign_report = {
-      id: campign_id,
+      id: campaign_id,
       total_sent: to.length,
       sent: [],
       bounced: [],
@@ -332,22 +337,23 @@ async function sendEmailWithBrand(req, res) {
     const maxRatePerMinute = await decryptUserData(max);
 
     let transporter = nodemailer.createTransport({
-      pool: true,
       host: decryptedHost,
       port: decryptedPort,
       secure: decryptedSecure,
-      maxConnections: 1,
       auth: {
         user: decryptedEmail,
         pass: decryptedPassword,
       },
-      rateLimit: maxRatePerMinute || 5,
-      rateDelta: 60 * 1000,
     });
 
     // Insert initial campaign details into the database
     const startQuery = `INSERT INTO campaign (campaign_id, sender, status, total_emails) VALUES (?, ?, ?, ?);`;
-    const startValues = [campign_id, req.user.email, "started", "" + to.length];
+    const startValues = [
+      campaign_id,
+      req.user.email,
+      "started",
+      "" + to.length,
+    ];
     await pool.promise().execute(startQuery, startValues);
 
     function oneSent() {
@@ -360,86 +366,92 @@ async function sendEmailWithBrand(req, res) {
 
     // Send emails to multiple recipients
     for (const recipientObject of to) {
-      try {
-        // Ensure recipientObject is not empty
-        if (!recipientObject) {
-          throw new Error("Recipient object is empty.");
-        }
-
-        // Extract email address from recipientObject
-        var emailValue = recipientObject[Object.keys(recipientObject)[0]];
-
-        // Ensure emailValue is defined
-        if (!emailValue) {
-          throw new Error("Recipient email address is empty.");
-        }
-
-        var emailSubject = replacePlaceholders(subject, recipientObject);
-        var emailMessage = replacePlaceholders(message, recipientObject);
-
-        var html = `<html><head><style>
-@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-        *{
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-        </style></head><body>
-          <div style="width: 100%; line-height: 2; padding: 30px;">
-            ${emailMessage}
-
-            <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${campign_id}/${emailValue}/img.png" alt="pixel" /></div>
-            <div style="text-align: center; padding: 40px">
-            <a href="https://emailjinny.com/" style="text-decoration: none; color: #d90429;">
-              <h6 style="color: #d90429;font-size:10px; font-family:'Roboto', sans-sarif;">send unlimited free email with 💝</h6>
-              <img style="max-width: 250px" src="https://app.emailjinny.com/public/assets/img/logo.png"/>
-            </a>            
-            </div>
-          </div>
-          </body></html>`;
-        // send next message from the pending queue
-        const info = await transporter.sendMail({
-          from: decryptedEmail,
-          to: emailValue,
-          subject: emailSubject,
-          html: html,
-          attachments: attachments.length > 0 ? attachments : null,
-        });
-
-        if (info.accepted && info.accepted.length > 0) {
-          campaign_report.sent.push(info);
-          if (!oneSend) {
-            oneSent();
-            oneSend = true;
+      setTimeout(async () => {
+        try {
+          // Ensure recipientObject is not empty
+          if (!recipientObject) {
+            throw new Error("Recipient object is empty.");
           }
-        } else if (info.rejected && info.rejected.length > 0) {
-          campaign_report.bounced.push(info);
-        } else {
-          campaign_report.error.push({ info, receiver: emailValue });
-        }
-      } catch (err) {
-        console.log(err);
-        if (err.responseCode === 535) {
-          const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
-          const updateValues = ["failed", campign_id];
-          await pool.promise().execute(updateQuery, updateValues);
-          return res.status(535).json({
-            error: "Bad Authentication",
+
+          // Extract email address from recipientObject
+          var emailValue = recipientObject[Object.keys(recipientObject)[0]];
+
+          // Ensure emailValue is defined
+          if (!emailValue) {
+            throw new Error("Recipient email address is empty.");
+          }
+
+          var emailSubject = replacePlaceholders(subject, recipientObject);
+          var emailMessage = replacePlaceholders(message, recipientObject);
+          let secretEmail = await encryptUserData(emailValue);
+          secretEmail.replaceAll("/", "*");
+          let secretCampaignId = await encryptUserData(campaign_id);
+          secretCampaignId = secretCampaignId.replaceAll("/", "*");
+
+          var html = `<html><head><style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+          *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          </style></head><body>
+            <div style="width: 100%; line-height: 2; padding: 30px;">
+              ${emailMessage}
+  
+              <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${secretEmail}/${secretCampaignId}/logo.png" alt="important" /></div>
+              <div style="text-align: center; padding: 40px">
+              <a href="https://emailjinny.com/" style="text-decoration: none; color: #d90429;">
+                <h6 style="color: #d90429;font-size:10px; font-family:'Roboto', sans-sarif;">send unlimited free email with 💝</h6>
+                <img style="max-width: 100px" src="https://app.emailjinny.com/public/assets/img/logo.png"/>
+              </a>            
+              </div>
+            </div>
+            </body></html>`;
+          // send next message from the pending queue
+          const info = await transporter.sendMail({
+            from: decryptedEmail,
+            to: emailValue,
+            subject: emailSubject,
+            html: html,
+            attachments: attachments.length > 0 ? attachments : null,
           });
-        } else {
-          const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
-          const updateValues = ["failed", campign_id];
-          await pool.promise().execute(updateQuery, updateValues);
-          return res.status(403).json({
-            error: "Something went wrong from Your Side",
-          });
+
+          if (info.accepted && info.accepted.length > 0) {
+            campaign_report.sent.push(info);
+            if (!oneSend) {
+              oneSent();
+              oneSend = true;
+            }
+          } else if (info.rejected && info.rejected.length > 0) {
+            campaign_report.bounced.push(info);
+          } else {
+            campaign_report.error.push({ info, receiver: emailValue });
+          }
+        } catch (err) {
+          console.log(err);
+          if (err.responseCode === 535) {
+            const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
+            const updateValues = ["failed", campaign_id];
+            await pool.promise().execute(updateQuery, updateValues);
+            return res.status(535).json({
+              error: "Bad Authentication",
+            });
+          } else {
+            const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
+            const updateValues = ["failed", campaign_id];
+            await pool.promise().execute(updateQuery, updateValues);
+            return res.status(403).json({
+              error: "Something went wrong from Your Side",
+            });
+          }
         }
-      }
+      }, 60000 / maxRatePerMinute);
     }
 
     // Update campaign status in the database
     const updateQuery = `UPDATE campaign SET status = ? WHERE campaign_id = ?;`;
-    const updateValues = ["completed", campign_id];
+    const updateValues = ["completed", campaign_id];
     await pool.promise().execute(updateQuery, updateValues);
 
     // Process sent and bounced recipients
@@ -456,7 +468,7 @@ async function sendEmailWithBrand(req, res) {
       sentQuery += ";";
 
       for (let i = 0; i < campaign_report.sent.length; i++) {
-        sentValues.push(campign_id);
+        sentValues.push(campaign_id);
         sentValues.push(receiverSentValues[i]);
       }
       var [resultSent] = await pool.promise().execute(sentQuery, sentValues);
@@ -477,7 +489,7 @@ async function sendEmailWithBrand(req, res) {
       rejectedQuery += ";";
 
       for (let i = 0; i < campaign_report.bounced.length; i++) {
-        rejectedValues.push(campign_id);
+        rejectedValues.push(campaign_id);
         rejectedValues.push(receiverRejectedValues[i]);
       }
       var [resultRejected] = await pool
@@ -498,7 +510,7 @@ async function sendEmailWithBrand(req, res) {
       bouncedQuery += ";";
 
       for (let i = 0; i < campaign_report.error.length; i++) {
-        bouncedValues.push(campign_id);
+        bouncedValues.push(campaign_id);
         bouncedValues.push(receiverBouncedValues[i]);
       }
       var [resultBounced] = await pool
