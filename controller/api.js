@@ -289,6 +289,7 @@ async function sendEmailWithBrand(req, res) {
     const fullName = (await decryptUserData(exactName)) || null;
 
     let transporter = nodemailer.createTransport({
+      pool: true,
       host: decryptedHost,
       port: decryptedPort,
       secure: decryptedSecure,
@@ -296,6 +297,8 @@ async function sendEmailWithBrand(req, res) {
         user: decryptedEmail,
         pass: decryptedPassword,
       },
+      rateDelta: 60000,
+      rateLimit: 5,
     });
 
     // Insert initial campaign details into the database
