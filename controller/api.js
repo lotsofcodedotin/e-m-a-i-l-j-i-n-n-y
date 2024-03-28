@@ -351,9 +351,7 @@ async function sendEmailWithBrand(req, res) {
             <div style="width: 100%; line-height: 2; padding: 30px;">
               ${emailMessage}
               <div style="text-align: center; padding: 40px">
-              <a href="https://emailjinny.com/" style="text-decoration: none; color: #d90429;">
-                <h6 style="color: #d90429;font-size:10px; font-family:'Roboto', sans-sarif;">send unlimited free email with 💝</h6>
-                <img style="max-width: 100px" src="https://app.emailjinny.com/public/assets/img/logo.png"/>
+                <h6 style="color: #d90429;font-size:10px; font-family:'Roboto', sans-sarif;">send unlimited free email with 💝emailjinny.com</h6>
               </a>            
               </div>
             </div>

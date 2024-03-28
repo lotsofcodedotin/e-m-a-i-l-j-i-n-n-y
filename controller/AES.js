@@ -1,12 +1,18 @@
 const CryptoJS = require("crypto-js");
 
 async function decryptUserData(encryptedData) {
-  const encryptionKey = await CryptoJS.SHA256(
-    process.env.ENCRYPTION_KEY
-  ).toString();
-  const decryptedBytes = CryptoJS.AES.decrypt(encryptedData, encryptionKey);
-  const decryptedData = decryptedBytes.toString(CryptoJS.enc.Utf8);
-  return JSON.parse(decryptedData);
+  try {
+    const encryptionKey = await CryptoJS.SHA256(
+      process.env.ENCRYPTION_KEY
+    ).toString();
+    const decryptedBytes = CryptoJS.AES.decrypt(encryptedData, encryptionKey);
+    const decryptedData = decryptedBytes.toString(CryptoJS.enc.Utf8);
+    return JSON.parse(decryptedData);
+  } catch (error) {
+    // Handle the error gracefully
+    console.error("Error decrypting user data:", error);
+    return null;
+  }
 }
 
 function replacePlaceholders(template, data) {
