@@ -35,9 +35,9 @@ app.get(
   "/public/assets/:secretEmail/:secretCampaignId/logo.png",
   async (req, res) => {
     // Extract email and campaign from query parameters
-    let secretEmail = req.params.secretEmail.replaceAll("*", "/");
+    let secretEmail = req.params.secretEmail.replaceAll("@", "/");
     let email = await decryptUserData(secretEmail);
-    let secretCampaignId = req.params.secretCampaignId.replaceAll("*", "/");
+    let secretCampaignId = req.params.secretCampaignId.replaceAll("@", "/");
     let campaign = await decryptUserData(secretCampaignId);
 
     const img = fs.readFileSync(path.resolve("public/assets/img/img.png"));

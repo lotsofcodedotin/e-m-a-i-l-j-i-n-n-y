@@ -152,9 +152,9 @@ async function sendEmailWithoutBrand(req, res) {
           var emailSubject = replacePlaceholders(subject, recipientObject);
           var emailMessage = replacePlaceholders(message, recipientObject);
           let secretEmail = await encryptUserData(emailValue);
-          secretEmail.replaceAll("/", "*");
+          secretEmail.replaceAll("/", "@");
           let secretCampaignId = await encryptUserData(campaign_id);
-          secretCampaignId = secretCampaignId.replaceAll("/", "*");
+          secretCampaignId = secretCampaignId.replaceAll("/", "@");
 
           var html = `<html><head><style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
@@ -185,10 +185,19 @@ async function sendEmailWithoutBrand(req, res) {
               oneSent();
               oneSend = true;
             }
+            var sentQuery = `insert into sent (campaign_id, receiver) VALUES (?,?);`;
+            var sentValues = [campaign_id, emailValue];
+            await pool.promise().execute(sentQuery, sentValues);
           } else if (info.rejected && info.rejected.length > 0) {
             campaign_report.bounced.push(info);
+            var bouncedQuery = `insert into bounced (campaign_id, receiver) VALUES (?,?);`;
+            var bouncedValues = [campaign_id, emailValue];
+            await pool.promise().execute(bouncedQuery, bouncedValues);
           } else {
             campaign_report.error.push({ info, receiver: emailValue });
+            var bouncedQuery = `insert into bounced (campaign_id, receiver) VALUES (?,?);`;
+            var bouncedValues = [campaign_id, emailValue];
+            await pool.promise().execute(bouncedQuery, bouncedValues);
           }
         } catch (err) {
           console.log(err);
@@ -217,68 +226,6 @@ async function sendEmailWithoutBrand(req, res) {
     await pool.promise().execute(updateQuery, updateValues);
 
     // Process sent and bounced recipients
-
-    if (campaign_report.sent.length > 0) {
-      var sentQuery = `insert into sent (campaign_id, receiver) VALUES`;
-      var sentValues = [];
-      var receiverSentValues = [];
-      for (let i = 0; i < campaign_report.sent.length; i++) {
-        sentQuery += ` (?, ?),`;
-        receiverSentValues[i] = campaign_report.sent[i].accepted[0];
-      }
-      sentQuery = sentQuery.substring(0, sentQuery.length - 1);
-      sentQuery += ";";
-
-      for (let i = 0; i < campaign_report.sent.length; i++) {
-        sentValues.push(campaign_id);
-        sentValues.push(receiverSentValues[i]);
-      }
-      var [resultSent] = await pool.promise().execute(sentQuery, sentValues);
-    }
-
-    /** */
-    // bounced
-    if (campaign_report.bounced.length > 0) {
-      console.log("bounced running");
-      var rejectedQuery = `insert into bounced (campaign_id, receiver) VALUES`;
-      var rejectedValues = [];
-      var receiverRejectedValues = [];
-      for (let i = 0; i < campaign_report.bounced.length; i++) {
-        rejectedQuery += ` (?, ?),`;
-        receiverRejectedValues[i] = campaign_report.bounced[i].accepted[0];
-      }
-      rejectedQuery = rejectedQuery.substring(0, rejectedQuery.length - 1);
-      rejectedQuery += ";";
-
-      for (let i = 0; i < campaign_report.bounced.length; i++) {
-        rejectedValues.push(campaign_id);
-        rejectedValues.push(receiverRejectedValues[i]);
-      }
-      var [resultRejected] = await pool
-        .promise()
-        .execute(rejectedQuery, rejectedValues);
-    }
-
-    if (campaign_report.error.length > 0) {
-      console.log("error running");
-      var bouncedQuery = `insert into bounced (campaign_id, receiver) VALUES`;
-      var bouncedValues = [];
-      var receiverBouncedValues = [];
-      for (let i = 0; i < campaign_report.error.length; i++) {
-        bouncedQuery += ` (?, ?),`;
-        receiverBouncedValues[i] = campaign_report.error[i]["receiver"];
-      }
-      bouncedQuery = bouncedQuery.substring(0, bouncedQuery.length - 1);
-      bouncedQuery += ";";
-
-      for (let i = 0; i < campaign_report.error.length; i++) {
-        bouncedValues.push(campaign_id);
-        bouncedValues.push(receiverBouncedValues[i]);
-      }
-      var [resultBounced] = await pool
-        .promise()
-        .execute(bouncedQuery, bouncedValues);
-    }
     transporter.close();
   } catch (err) {
     res.status(500).json({ error: err });
@@ -384,9 +331,9 @@ async function sendEmailWithBrand(req, res) {
           var emailSubject = replacePlaceholders(subject, recipientObject);
           var emailMessage = replacePlaceholders(message, recipientObject);
           let secretEmail = await encryptUserData(emailValue);
-          secretEmail.replaceAll("/", "*");
+          secretEmail.replaceAll("/", "@");
           let secretCampaignId = await encryptUserData(campaign_id);
-          secretCampaignId = secretCampaignId.replaceAll("/", "*");
+          secretCampaignId = secretCampaignId.replaceAll("/", "@");
 
           var html = `<html><head><style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
@@ -423,10 +370,19 @@ async function sendEmailWithBrand(req, res) {
               oneSent();
               oneSend = true;
             }
+            var sentQuery = `insert into sent (campaign_id, receiver) VALUES (?,?);`;
+            var sentValues = [campaign_id, emailValue];
+            await pool.promise().execute(sentQuery, sentValues);
           } else if (info.rejected && info.rejected.length > 0) {
             campaign_report.bounced.push(info);
+            var bouncedQuery = `insert into bounced (campaign_id, receiver) VALUES (?,?);`;
+            var bouncedValues = [campaign_id, emailValue];
+            await pool.promise().execute(bouncedQuery, bouncedValues);
           } else {
             campaign_report.error.push({ info, receiver: emailValue });
+            var bouncedQuery = `insert into bounced (campaign_id, receiver) VALUES (?,?);`;
+            var bouncedValues = [campaign_id, emailValue];
+            await pool.promise().execute(bouncedQuery, bouncedValues);
           }
         } catch (err) {
           console.log(err);
@@ -455,68 +411,6 @@ async function sendEmailWithBrand(req, res) {
     await pool.promise().execute(updateQuery, updateValues);
 
     // Process sent and bounced recipients
-
-    if (campaign_report.sent.length > 0) {
-      var sentQuery = `insert into sent (campaign_id, receiver) VALUES`;
-      var sentValues = [];
-      var receiverSentValues = [];
-      for (let i = 0; i < campaign_report.sent.length; i++) {
-        sentQuery += ` (?, ?),`;
-        receiverSentValues[i] = campaign_report.sent[i].accepted[0];
-      }
-      sentQuery = sentQuery.substring(0, sentQuery.length - 1);
-      sentQuery += ";";
-
-      for (let i = 0; i < campaign_report.sent.length; i++) {
-        sentValues.push(campaign_id);
-        sentValues.push(receiverSentValues[i]);
-      }
-      var [resultSent] = await pool.promise().execute(sentQuery, sentValues);
-    }
-
-    /** */
-    // bounced
-    if (campaign_report.bounced.length > 0) {
-      console.log("bounced running");
-      var rejectedQuery = `insert into bounced (campaign_id, receiver) VALUES`;
-      var rejectedValues = [];
-      var receiverRejectedValues = [];
-      for (let i = 0; i < campaign_report.bounced.length; i++) {
-        rejectedQuery += ` (?, ?),`;
-        receiverRejectedValues[i] = campaign_report.bounced[i].accepted[0];
-      }
-      rejectedQuery = rejectedQuery.substring(0, rejectedQuery.length - 1);
-      rejectedQuery += ";";
-
-      for (let i = 0; i < campaign_report.bounced.length; i++) {
-        rejectedValues.push(campaign_id);
-        rejectedValues.push(receiverRejectedValues[i]);
-      }
-      var [resultRejected] = await pool
-        .promise()
-        .execute(rejectedQuery, rejectedValues);
-    }
-
-    if (campaign_report.error.length > 0) {
-      console.log("error running");
-      var bouncedQuery = `insert into bounced (campaign_id, receiver) VALUES`;
-      var bouncedValues = [];
-      var receiverBouncedValues = [];
-      for (let i = 0; i < campaign_report.error.length; i++) {
-        bouncedQuery += ` (?, ?),`;
-        receiverBouncedValues[i] = campaign_report.error[i]["receiver"];
-      }
-      bouncedQuery = bouncedQuery.substring(0, bouncedQuery.length - 1);
-      bouncedQuery += ";";
-
-      for (let i = 0; i < campaign_report.error.length; i++) {
-        bouncedValues.push(campaign_id);
-        bouncedValues.push(receiverBouncedValues[i]);
-      }
-      var [resultBounced] = await pool
-        .promise()
-        .execute(bouncedQuery, bouncedValues);
-    }
     transporter.close();
   } catch (err) {
     res.status(500).json({ error: err });
