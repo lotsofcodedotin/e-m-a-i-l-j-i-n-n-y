@@ -96,13 +96,15 @@ async function sendEmailWithoutBrand(req, res) {
       return res.redirect("/config");
     }
 
-    const { host, email, password, port, secure, max } = req.user.secrets;
+    const { host, email, password, port, secure, max, exactName } =
+      req.user.secrets;
     const decryptedHost = await decryptUserData(host);
     const decryptedPort = await decryptUserData(port);
     const decryptedSecure = await decryptUserData(secure);
     const decryptedPassword = await decryptUserData(password);
     const decryptedEmail = await decryptUserData(email);
     const maxRatePerMinute = await decryptUserData(max);
+    const fullName = (await decryptUserData(exactName)) || null;
 
     let transporter = nodemailer.createTransport({
       host: decryptedHost,
@@ -166,13 +168,14 @@ async function sendEmailWithoutBrand(req, res) {
           </style></head><body>
             <div style="width: 100%; line-height: 2; padding: 30px;">
               ${emailMessage}
-  
-              <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${secretEmail}/${secretCampaignId}/logo.png" alt="important" /></div>
             </div>
             </body></html>`;
           // send next message from the pending queue
           const info = await transporter.sendMail({
-            from: decryptedEmail,
+            from:
+              fullName == null
+                ? `${decryptedEmail}`
+                : `${fullName} <${decryptedEmail}>`,
             to: emailValue,
             subject: emailSubject,
             html: html,
@@ -217,7 +220,7 @@ async function sendEmailWithoutBrand(req, res) {
             });
           }
         }
-      }, 60000 / maxRatePerMinute);
+      }, 60000 / maxRatePerMinute + 1000 * Math.random() * 10);
     }
 
     // Update campaign status in the database
@@ -275,13 +278,15 @@ async function sendEmailWithBrand(req, res) {
       return res.redirect("/config");
     }
 
-    const { host, email, password, port, secure, max } = req.user.secrets;
+    const { host, email, password, port, secure, max, exactName } =
+      req.user.secrets;
     const decryptedHost = await decryptUserData(host);
     const decryptedPort = await decryptUserData(port);
     const decryptedSecure = await decryptUserData(secure);
     const decryptedPassword = await decryptUserData(password);
     const decryptedEmail = await decryptUserData(email);
     const maxRatePerMinute = await decryptUserData(max);
+    const fullName = (await decryptUserData(exactName)) || null;
 
     let transporter = nodemailer.createTransport({
       host: decryptedHost,
@@ -345,8 +350,6 @@ async function sendEmailWithBrand(req, res) {
           </style></head><body>
             <div style="width: 100%; line-height: 2; padding: 30px;">
               ${emailMessage}
-  
-              <div><img width="1" height="1" src="https://app.emailjinny.com/public/assets/${secretEmail}/${secretCampaignId}/logo.png" alt="important" /></div>
               <div style="text-align: center; padding: 40px">
               <a href="https://emailjinny.com/" style="text-decoration: none; color: #d90429;">
                 <h6 style="color: #d90429;font-size:10px; font-family:'Roboto', sans-sarif;">send unlimited free email with 💝</h6>
@@ -357,7 +360,10 @@ async function sendEmailWithBrand(req, res) {
             </body></html>`;
           // send next message from the pending queue
           const info = await transporter.sendMail({
-            from: decryptedEmail,
+            from:
+              fullName == null
+                ? `${decryptedEmail}`
+                : `${fullName} <${decryptedEmail}>`,
             to: emailValue,
             subject: emailSubject,
             html: html,
@@ -402,7 +408,7 @@ async function sendEmailWithBrand(req, res) {
             });
           }
         }
-      }, 60000 / maxRatePerMinute);
+      }, 60000 / maxRatePerMinute + 1000 * Math.random() * 10);
     }
 
     // Update campaign status in the database

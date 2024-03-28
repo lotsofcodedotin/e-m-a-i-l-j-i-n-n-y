@@ -303,6 +303,17 @@
         required
       />
 
+      <label for="exactName"
+        >Exact Name<span style="color: red">*</span>:</label
+      >
+      <input
+        type="text"
+        id="exactName"
+        name="exactName"
+        placeholder="Rahul Sharma"
+        required
+      />
+
       <label for="password">Password<span style="color: red">*</span>:</label>
       <input
         type="password"
@@ -358,6 +369,7 @@
         const secure = document.querySelector("#secure").value;
         const email = document.querySelector("#email").value;
         const password = document.querySelector("#password").value;
+        const exactName = document.querySelector("#exactName").value;
 
         if (!host || !port || !secure || !email || !password) {
           showErrorPopup("All fields are required");
@@ -369,7 +381,14 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ host, port, secure, email, password }),
+          body: JSON.stringify({
+            host,
+            port,
+            secure,
+            email,
+            password,
+            exactName,
+          }),
         })
           .then((response) => {
             Swal.hideLoading();

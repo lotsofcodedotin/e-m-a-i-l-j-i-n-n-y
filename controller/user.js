@@ -92,8 +92,12 @@ const login = async (req, res) => {
         );
 
       if (currentPack.length != 0) {
-        var { plan,subscription_start_date, subscription_end_date, pending_daily_withoutlogo_emails } =
-          currentPack[0];
+        var {
+          plan,
+          subscription_start_date,
+          subscription_end_date,
+          pending_daily_withoutlogo_emails,
+        } = currentPack[0];
       } else {
         var plan = "FREE";
       }
@@ -128,10 +132,11 @@ const login = async (req, res) => {
           password,
           secure,
           max,
+          exactName,
         } = result[0];
         var expiresIn = "1d";
         const secret = jwt.sign(
-          { host, port, email, password, secure, max },
+          { host, port, email, password, secure, max, exactName },
           process.env.JWT_SECRET
         );
 
@@ -163,7 +168,7 @@ const config = async (req, res) => {
   const user_email = req.user.email;
 
   try {
-    var { host, port, secure, email, password, max } = req.body;
+    var { host, port, secure, email, password, max, exactName } = req.body;
 
     // Encrypt data
     host = await encryptUserData(host);
@@ -172,6 +177,7 @@ const config = async (req, res) => {
     password = await encryptUserData(password);
     email = await encryptUserData(email);
     maxPerMinute = await encryptUserData(max || 5);
+    exactName = await encryptUserData(exactName);
 
     // Check for existing entry
     const checkQuery = "SELECT * FROM secrets WHERE user_id = ?";
@@ -188,7 +194,7 @@ const config = async (req, res) => {
       if (result.length > 0) {
         // Entry exists, update it
         const updateQuery =
-          "UPDATE secrets SET host = ?, port = ?, secure = ?, from_email = ?, password = ?, max = ? WHERE user_id = ?";
+          "UPDATE secrets SET host = ?, port = ?, secure = ?, from_email = ?, password = ?, max = ?, exactName = ? WHERE user_id = ?";
         const updateValues = [
           host,
           port,
@@ -196,6 +202,7 @@ const config = async (req, res) => {
           email,
           password,
           maxPerMinute || 5,
+          exactName,
           user_email,
         ];
         pool.execute(updateQuery, updateValues, (err, result) => {
@@ -206,7 +213,15 @@ const config = async (req, res) => {
           console.log("Data updated successfully");
           var expiresIn = "1d";
           const tokenNew = jwt.sign(
-            { host, port, email, password, secure, max: maxPerMinute },
+            {
+              host,
+              port,
+              email,
+              password,
+              secure,
+              max: maxPerMinute,
+              exactName,
+            },
             process.env.JWT_SECRET
           );
 
@@ -222,7 +237,7 @@ const config = async (req, res) => {
       } else {
         // Entry doesn't exist, insert it
         const insertQuery =
-          "INSERT INTO secrets (user_id, host, port, secure, from_email, password, max) VALUES (?, ?, ?, ?, ?, ?, ?)";
+          "INSERT INTO secrets (user_id, host, port, secure, from_email, password, max, exactName) VALUES (?, ?, ?, ?, ?, ?, ?,?)";
         const insertValues = [
           user_email,
           host,
@@ -231,6 +246,7 @@ const config = async (req, res) => {
           email,
           password,
           maxPerMinute || 5,
+          exactName,
         ];
         pool.execute(insertQuery, insertValues, (err, result) => {
           if (err) {
@@ -241,7 +257,15 @@ const config = async (req, res) => {
 
           const expiresIn = "1d";
           const tokenNew = jwt.sign(
-            { host, port, email, password, secure, max: maxPerMinute },
+            {
+              host,
+              port,
+              email,
+              password,
+              secure,
+              max: maxPerMinute,
+              exactName,
+            },
             process.env.JWT_SECRET
           );
 

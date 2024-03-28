@@ -362,9 +362,7 @@
 
         const tr = document.createElement("tr");
         tr.innerHTML = `<th>receiver</th>
-        <th>sent</th>
-        <th>opened</th>
-        <th>bounced</th>`;
+        <th>sent</th>`;
 
         tableBody.appendChild(tr);
 
@@ -376,19 +374,9 @@
           if (row.sent_at != "x") {
             row.sent_at = new Date(row.sent_at);
           }
-          row.bounced_at = row.bounced_at != null ? row.bounced_at : "x";
-          if (row.bounced_at != "x") {
-            row.bounced_at = new Date(row.bounced_at);
-          }
-          row.opened_at = row.opened_at != null ? row.opened_at : "x";
-          if (row.opened_at != "x") {
-            row.opened_at = new Date(row.opened_at);
-          }
           tr.innerHTML = `
         <td>${row.email}</td>
         <td>${row.sent_at}</td>
-        <td>${row.opened_at}</td>
-        <td>${row.bounced_at}</td>
       `;
           tableBody.appendChild(tr);
         });
