@@ -298,7 +298,8 @@ async function sendEmailWithBrand(req, res) {
         pass: decryptedPassword,
       },
       rateDelta: 60000,
-      rateLimit: 5,
+      rateLimit: maxRatePerMinute || 5,
+      maxConnections: 1,
     });
 
     // Insert initial campaign details into the database
