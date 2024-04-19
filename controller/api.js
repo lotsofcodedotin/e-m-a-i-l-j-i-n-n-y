@@ -100,7 +100,7 @@ async function sendEmailWithoutBrand(req, res) {
       req.user.secrets;
     const decryptedHost = await decryptUserData(host);
     const decryptedPort = await decryptUserData(port);
-    const decryptedSecure = await decryptUserData(secure);
+    // const decryptedSecure = await decryptUserData(secure);
     const decryptedPassword = await decryptUserData(password);
     const decryptedEmail = await decryptUserData(email);
     const maxRatePerMinute = await decryptUserData(max);
@@ -110,10 +110,13 @@ async function sendEmailWithoutBrand(req, res) {
       pool: true,
       host: decryptedHost,
       port: decryptedPort,
-      secure: decryptedSecure,
       auth: {
         user: decryptedEmail,
         pass: decryptedPassword,
+      },
+      tls: {
+        // do not fail on invalid certs
+        rejectUnauthorized: false,
       },
       rateDelta: 60000,
       rateLimit: maxRatePerMinute || 5,

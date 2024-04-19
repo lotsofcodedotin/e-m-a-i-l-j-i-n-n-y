@@ -288,8 +288,10 @@
       <label for="port">PORT<span style="color: red">*</span>:</label>
       <input type="number" placeholder="465" id="port" name="port" />
 
-      <label for="secure">SECURE<span style="color: red">*</span>:</label>
-      <select name="secure" id="secure">
+      <label style="display: none" for="secure"
+        >SECURE<span style="color: red" hidden>*</span>:</label
+      >
+      <select hidden name="secure" id="secure">
         <option value="true">true</option>
         <option value="false">false</option>
       </select>
