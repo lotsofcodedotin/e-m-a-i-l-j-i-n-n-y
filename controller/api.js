@@ -172,7 +172,7 @@ async function sendEmailWithoutBrand(req, res) {
             box-sizing: border-box;
           }
           </style></head><body>
-            <div style="width: 100%; line-height: 2; padding: 30px;">
+            <div>
               ${emailMessage}
             </div>
             </body></html>`;
