@@ -164,18 +164,7 @@ async function sendEmailWithoutBrand(req, res) {
         let secretCampaignId = await encryptUserData(campaign_id);
         secretCampaignId = secretCampaignId.replaceAll("/", "@");
 
-        var html = `<html><head><style>
-  @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-          *{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          </style></head><body>
-            <div>
-              ${emailMessage}
-            </div>
-            </body></html>`;
+        var html = `${emailMessage}`;
         // send next message from the pending queue
         const info = await transporter.sendMail({
           from:
